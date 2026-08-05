@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MCN 工作台 · 今日任务演化版</title>
+<style>
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#f4f7fc}
+button{font-family:"Microsoft YaHei","PingFang SC",sans-serif}
+.page-frame{
+  position:fixed;inset:0;width:100%;height:100%;border:0;background:#f4f7fc;
+}
+#homeFrame{z-index:1}
+.task-modal{
+  position:fixed;z-index:10;visibility:hidden;opacity:0;pointer-events:none;
+  display:flex;flex-direction:column;overflow:hidden;
+  border:1px solid rgba(211,221,238,.96);border-radius:20px;background:#fff;
+  box-shadow:0 28px 90px rgba(24,56,120,.22),0 4px 18px rgba(24,56,120,.08);
+  will-change:left,top,width,height,opacity,border-radius;
+}
+.task-toolbar{
+  flex:none;height:54px;display:flex;align-items:center;gap:12px;padding:0 15px;
+  border-bottom:1px solid #e1e7f1;background:linear-gradient(90deg,#fff,#f7faff);
+  opacity:0;transition:opacity .2s ease;
+}
+.task-toolbar strong{font-size:14px;color:#142b61}.task-toolbar small{font-size:10px;color:#7786a6}
+.toolbar-title{display:flex;flex-direction:column;gap:2px;min-width:0}.toolbar-spacer{flex:1}
+.live{display:flex;align-items:center;gap:7px;padding:6px 9px;border-radius:8px;color:#0b8150;background:#e9f8f0;font-size:10px;font-weight:700}
+.live:before{content:"";width:6px;height:6px;border-radius:50%;background:#16a863;box-shadow:0 0 0 4px rgba(22,168,99,.11)}
+.task-viewport{position:relative;flex:1;min-height:0;overflow:hidden;background:#f5f7fb}
+#taskFrame{
+  position:absolute;left:-92px;top:0;width:calc(100% + 92px);height:100%;
+  border:0;background:#f5f7fb;
+}
+#taskHit,#avatarHit,#reviewHit{
+  position:fixed;z-index:4;border:0;padding:0;background:transparent;cursor:pointer;
+  top:118px;
+  width:calc((min(100vw,1440px) - 72px)/3);
+  height:calc(100vh - 142px);
+}
+#taskHit{left:max(24px,calc((100vw - 1440px)/2 + 24px))}
+#avatarHit{left:calc(max(24px,calc((100vw - 1440px)/2 + 24px)) + (min(100vw,1440px) - 72px)/3 + 12px)}
+#reviewHit{left:calc(max(24px,calc((100vw - 1440px)/2 + 24px)) + (min(100vw,1440px) - 72px) - (min(100vw,1440px) - 72px)/3 + 24px)}
+#taskHit:focus-visible,#avatarHit:focus-visible,#reviewHit:focus-visible{outline:3px solid #1878f3;outline-offset:-3px;border-radius:14px}
+.veil{position:fixed;z-index:3;inset:0;pointer-events:none;opacity:0;background:rgba(244,247,252,.82);backdrop-filter:blur(2px);transition:opacity .28s ease}
+.source-card{
+  position:fixed;z-index:5;pointer-events:none;overflow:hidden;opacity:0;
+  border:1px solid #dfe6f2;border-radius:14px;background:#fff;
+  box-shadow:0 18px 42px rgba(35,68,139,.11);
+}
+.source-card:before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.2),rgba(24,120,243,.06));opacity:0}
+.source-card.flash:before{animation:flash .5s ease}
+@keyframes flash{45%{opacity:1}to{opacity:0}}
+.back{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid #d7e1f0;border-radius:9px;color:#183872;background:#fff;font-size:11px;font-weight:700;cursor:pointer;transition:.18s ease}
+.back:hover{background:#edf4ff;color:#0872eb;border-color:#a9c7f0;transform:translateX(-2px)}
+.loading{
+  position:fixed;z-index:18;left:50%;top:50%;transform:translate(-50%,-50%);
+  padding:9px 13px;border-radius:9px;color:#fff;background:#17336e;font:12px "Microsoft YaHei";
+  opacity:0;pointer-events:none;transition:opacity .15s ease;
+}
+.loading.show{opacity:1}
+.open #taskHit,.open #avatarHit,.open #reviewHit{pointer-events:none}
+.open .veil{opacity:.84}
+.open .task-toolbar{opacity:1}
+.avatar-view #taskFrame{left:0;width:100%}
+.review-view #taskFrame{left:0;width:100%}
+@media(max-width:1279px){
+  #taskHit{left:24px;top:118px;width:342px;height:calc(100vh - 142px)}
+  #avatarHit{left:376px;top:118px;width:342px;height:calc(100vh - 142px)}
+  #reviewHit{left:728px;top:118px;width:342px;height:calc(100vh - 142px)}
+}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+  <iframe id="homeFrame" class="page-frame" src="dashboard.html" title="MCN 工作台首页"></iframe>
+  <div class="veil" aria-hidden="true"></div>
+  <div class="source-card" aria-hidden="true"></div>
+  <button id="taskHit" aria-label="进入今日任务"></button>
+  <button id="avatarHit" aria-label="进入数字分身"></button>
+  <button id="reviewHit" aria-label="进入复盘助手"></button>
+  <section class="task-modal" aria-label="工作台详情">
+    <header class="task-toolbar">
+      <button class="back" aria-label="返回工作台首页"><span>←</span> 返回首页</button>
+      <div class="toolbar-title"><strong id="modalTitle">今日任务 · AI 执行中心</strong></div>
+      <span class="toolbar-spacer"></span><span class="live" id="modalStatus">实时运行</span>
+    </header>
+    <div class="task-viewport"><iframe id="taskFrame" src="today-tasks.html" title="今日任务 AI 执行中心"></iframe></div>
+  </section>
+  <div class="loading" role="status">正在展开今日任务…</div>
+<script>
+const root=document.documentElement;
+const taskHit=document.querySelector('#taskHit');
+const avatarHit=document.querySelector('#avatarHit');
+const reviewHit=document.querySelector('#reviewHit');
+const modal=document.querySelector('.task-modal');
+const task=document.querySelector('#taskFrame');
+const back=document.querySelector('.back');
+const source=document.querySelector('.source-card');
+const loading=document.querySelector('.loading');
+const modalTitle=document.querySelector('#modalTitle');
+const modalStatus=document.querySelector('#modalStatus');
+const pages={
+  task:{hit:taskHit,src:'today-tasks.html',title:'今日任务 · AI 执行中心',status:'实时运行',loading:'正在展开今日任务…',loaded:false},
+  avatar:{hit:avatarHit,src:'digital-avatars.html',title:'数字分身 · 智能执行中心',status:'智能在线',loading:'正在展开数字分身…',loaded:false},
+  review:{hit:reviewHit,src:'mcn_pipeline-main/new-operations-review.html?embed=1',title:'复盘助手 · 运营复盘中心',status:'数据已更新',loading:'正在展开复盘助手…',loaded:false}
+};
+let activeKey='task';
+let activeHit=taskHit;
+let busy=false;
+
+task.addEventListener('load',()=>{pages[activeKey].loaded=true;loading.classList.remove('show')});
+
+function cardRect(target=activeHit){
+  const r=target.getBoundingClientRect();
+  return {left:r.left,top:r.top,width:r.width,height:Math.max(160,r.height)};
+}
+function place(el,r){
+  el.style.left=r.left+'px';el.style.top=r.top+'px';
+  el.style.width=r.width+'px';el.style.height=r.height+'px';
+}
+function modalRect(){
+  const gap=24;
+  return {left:gap,top:22,width:Math.max(820,innerWidth-gap*2),height:Math.max(620,innerHeight-44)};
+}
+function wait(ms){return new Promise(resolve=>setTimeout(resolve,ms))}
+
+async function openPage(key){
+  if(busy||root.classList.contains('open'))return;
+  busy=true;
+  const page=pages[key];
+  activeKey=key;activeHit=page.hit;
+  modalTitle.textContent=page.title;
+  modalStatus.textContent=page.status;
+  modal.setAttribute('aria-label',page.title);
+  modal.classList.toggle('avatar-view',key==='avatar');
+  modal.classList.toggle('review-view',key==='review');
+  if(task.getAttribute('src')!==page.src)task.setAttribute('src',page.src);
+  loading.textContent=page.loading;
+  const start=cardRect(activeHit);
+  place(source,start);source.style.opacity='1';source.classList.add('flash');
+  root.classList.add('open');
+  if(!page.loaded)loading.classList.add('show');
+
+  place(modal,start);
+  modal.style.visibility='visible';modal.style.opacity='0';modal.style.pointerEvents='none';
+  await wait(60);
+  modal.style.transition='left .66s cubic-bezier(.2,.82,.2,1),top .66s cubic-bezier(.2,.82,.2,1),width .66s cubic-bezier(.2,.82,.2,1),height .66s cubic-bezier(.2,.82,.2,1),opacity .34s .08s ease,border-radius .5s ease';
+  place(modal,modalRect());
+  modal.style.opacity='1';modal.style.borderRadius='20px';
+  await wait(680);
+  source.style.opacity='0';source.classList.remove('flash');
+  modal.style.pointerEvents='auto';back.focus();busy=false;
+}
+
+async function closeTasks(){
+  if(busy||!root.classList.contains('open'))return;
+  busy=true;modal.style.pointerEvents='none';
+  const end=cardRect(activeHit);place(source,end);source.style.opacity='1';
+  modal.style.transition='left .58s cubic-bezier(.3,.05,.25,1),top .58s cubic-bezier(.3,.05,.25,1),width .58s cubic-bezier(.3,.05,.25,1),height .58s cubic-bezier(.3,.05,.25,1),opacity .34s .2s ease,border-radius .45s ease';
+  place(modal,end);modal.style.opacity='.18';modal.style.borderRadius='14px';
+  await wait(590);
+  modal.style.visibility='hidden';modal.style.opacity='0';source.style.opacity='0';
+  root.classList.remove('open');activeHit.focus();busy=false;
+}
+
+taskHit.addEventListener('click',()=>openPage('task'));
+avatarHit.addEventListener('click',()=>openPage('avatar'));
+reviewHit.addEventListener('click',()=>openPage('review'));
+back.addEventListener('click',closeTasks);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeTasks()});
+addEventListener('message',e=>{
+  if(e.source!==task.contentWindow||e.data?.type!=='mcn-open-page'||!pages[e.data.key])return;
+  const key=e.data.key;
+  if(!root.classList.contains('open')){openPage(key);return}
+  const page=pages[key];
+  activeKey=key;activeHit=page.hit;
+  modalTitle.textContent=page.title;
+  modalStatus.textContent=page.status;
+  modal.setAttribute('aria-label',page.title);
+  modal.classList.toggle('avatar-view',key==='avatar');
+  modal.classList.toggle('review-view',key==='review');
+  loading.textContent=page.loading;
+  if(task.getAttribute('src')!==page.src){
+    loading.classList.add('show');
+    task.setAttribute('src',page.src);
+  }
+});
+addEventListener('resize',()=>{
+  if(root.classList.contains('open')&&!busy)place(modal,modalRect());
+});
+</script>
+</body>
+</html>
