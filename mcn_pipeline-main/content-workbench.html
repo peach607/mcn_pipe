@@ -1,0 +1,1592 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>mcn工作台</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--bg:#f4f6f9;--violet:#2563eb;--violet-soft:#eff6ff;--red:#dc454b;--red-soft:#fff1f1;--green:#268e6a;--shadow:0 10px 30px rgba(15,23,42,.06)}
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif}
+    button,input,textarea{font:inherit}button{color:inherit;cursor:pointer}
+    .shell{display:grid;grid-template-columns:76px 310px minmax(760px,1fr);height:100vh;overflow:hidden;background:#fff}
+    .rail{background:#202028;color:#fff;display:flex;flex-direction:column;align-items:center;padding:20px 0}
+    .logo{width:38px;height:38px;display:grid;place-items:center;border-radius:10px;background:var(--violet);font-weight:700;box-shadow:0 8px 18px rgba(104,82,223,.3)}
+    .rail-nav{display:grid;gap:12px;margin-top:44px;width:100%}.rail-btn{border:0;background:none;color:#9797a3;padding:11px 0;display:grid;gap:5px;justify-items:center;font-size:11px;position:relative}.rail-btn b{font-size:18px}.rail-btn.active{color:#fff}.rail-btn.active:before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;background:#8e7aff;border-radius:0 3px 3px 0}.avatar{margin-top:auto;width:36px;height:36px;border:1px solid #484852;border-radius:50%;background:#2d2d37;color:#fff}
+    .tasks{display:flex;flex-direction:column;background:#fafafd;border-right:1px solid var(--line);min-width:0}
+    .task-head{padding:29px 22px 20px;display:flex;align-items:center;justify-content:space-between}.task-head h1{font-size:21px;margin:0}.add{width:32px;height:32px;border:1px solid #dddde4;border-radius:8px;background:#fff;font-size:19px}
+    .tabs{display:flex;gap:4px;padding:0 14px 13px;border-bottom:1px solid var(--line)}.tabs button{flex:1;border:0;background:none;color:#82828c;padding:9px 3px;border-radius:7px;font-size:12px;position:relative}.tabs button.active{background:var(--violet-soft);color:#4c39bd;font-weight:650}.tabs .dot{position:absolute;right:5px;top:5px;width:6px;height:6px;border-radius:50%;background:var(--red)}
+    .task-list{padding:12px 10px;overflow:auto;flex:1}.task-row{width:100%;border:0;background:none;border-radius:9px;padding:12px 11px;display:flex;align-items:center;gap:10px;text-align:left;margin-bottom:3px}.task-row:hover{background:#f1f1f5}.task-row.selected{background:#eeebfd}.task-row.alert-selected{background:#fff0f0}.status{position:relative;width:8px;height:8px;border-radius:50%;background:#c4c4cb;box-shadow:0 0 0 3px #eeeef1}.status.run{background:transparent;box-shadow:none;border:2px solid #d5cff8;border-top-color:var(--violet);animation:spin .8s linear infinite}.status.scheduled{background:#50a783;box-shadow:0 0 0 3px #dff2ea}.status.todo{background:#e49a37;box-shadow:0 0 0 3px #fff0db}.task-copy{display:grid;gap:4px;min-width:0;flex:1}.task-copy strong{font-size:13px}.task-copy small{font-size:11px;color:#9797a0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.task-row.selected .task-copy small{color:#766ca8}.count{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:var(--red);color:#fff;font-size:11px;font-weight:700}.type-icon{width:19px;height:19px;border:1px solid #d9d9e0;border-radius:5px;display:grid;place-items:center;color:#9999a3;font-size:12px}.portfolio-card{margin:3px 3px 14px;padding:14px;background:#fff;border:1px solid #e3e0f3;border-radius:10px;box-shadow:0 4px 16px rgba(30,27,49,.04)}.portfolio-card div{display:flex;justify-content:space-between;color:#9999a3;font-size:10px;margin-bottom:10px}.portfolio-card button{border:0;background:none;color:var(--violet);font-size:10px}.portfolio-card strong,.portfolio-card small{display:block}.portfolio-card strong{font-size:13px;margin-bottom:6px}.portfolio-card small{color:#85858f;font-size:10px}.task-foot{padding:14px 19px;border-top:1px solid var(--line);color:#898993;font-size:11px}.task-foot i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ca481;box-shadow:0 0 0 4px #dff2ea;margin-right:8px}
+    .work{position:relative;display:flex;flex-direction:column;min-width:0;min-height:0;height:100vh;overflow:hidden;background:var(--bg)}.work-head{height:76px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 30px;flex:none}.crumb{color:#9999a3;font-size:11px;margin-bottom:4px}.crumb span{padding:0 5px}.work-head h2{margin:0;font-size:20px}.head-side{display:flex;align-items:center;gap:10px}.bell{width:34px;height:34px;border:1px solid var(--line);border-radius:8px;background:#fff}
+    .page{display:none;height:100vh;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:20px 28px 132px}.page.active{display:block}
+    .market{min-height:92px;background:#23232c;color:#fff;border-radius:11px;padding:0 18px;display:flex;align-items:stretch;box-shadow:0 8px 24px rgba(28,27,35,.11)}.market-tabs{width:124px;display:grid;align-content:center;gap:7px;padding-right:14px;border-right:1px solid #3b3b45}.market-tabs button{border:0;background:none;color:#858590;text-align:left;padding:5px 7px;border-radius:5px;font-size:10px}.market-tabs button.active{background:#383842;color:#fff}.market-tabs button i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#51b287;margin-right:7px;box-shadow:0 0 0 3px rgba(81,178,135,.12)}.market-pane{display:none;grid-template-columns:repeat(5,1fr);flex:1}.market-pane.active{display:grid}.quote{display:grid;grid-template-columns:1fr auto;align-content:center;gap:5px 9px;padding:16px 16px;border-right:1px solid #393943}.quote span{grid-column:1/-1;color:#9696a1;font-size:10px}.quote strong{font-size:14px}.quote small{font-size:11px;align-self:end}.loss{color:#59cf9e}.gain{color:#ff747a}.flat{color:#bebec8}.market-more{width:78px;border:0;background:none;color:#aaaab4;font-size:11px}
+    .overview{display:grid;grid-template-columns:.92fr 1.08fr;gap:16px;margin-top:16px}.card{background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 4px 20px rgba(27,25,45,.035)}.mini-card{padding:18px 19px 15px}.card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}.label{font-size:9px;color:#92929d;font-weight:700;letter-spacing:.09em}.card-head h3{font-size:14px;margin:3px 0 0}.chip{font-size:10px;color:#85858f;background:#f5f5f7;padding:5px 8px;border-radius:5px}.card-head button{border:0;background:none;color:var(--violet);font-size:10px}
+    .calendar-row{display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center;padding:9px 0;border-top:1px solid #f0f0f3}.calendar-row time{font-size:11px;font-weight:650}.calendar-row span{display:grid;gap:3px}.calendar-row strong{font-size:11px}.calendar-row small{font-size:9px;color:#9999a3}.priority{width:20px;height:20px;display:grid;place-items:center;border-radius:4px;font-style:normal;font-size:9px;background:#fff0f0;color:var(--red)}
+    .sectors{display:grid;grid-template-columns:1fr 1fr;gap:7px 12px}.sector{display:grid;grid-template-columns:auto 1fr;gap:3px 7px;align-items:center;border-top:1px solid #f0f0f3;padding:9px 0 6px;min-width:0}.sector em{grid-row:1/3;font-style:normal;font-size:9px;padding:4px;border-radius:4px;background:#f0eefb;color:#6958b4}.sector em.hot{background:#fff0f0;color:var(--red)}.sector strong{font-size:11px}.sector small{font-size:9px;color:#9999a3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .workflow{margin-top:16px;overflow:hidden}.workflow-head{display:grid;grid-template-columns:104px 1fr auto;gap:18px;align-items:center;padding:18px 20px 14px}.running{font-size:10px;color:#4d39c1;background:var(--violet-soft);border-radius:5px;padding:6px 8px;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:6px}.running:before{content:"";width:9px;height:9px;border:2px solid #cbc3f8;border-top-color:var(--violet);border-radius:50%;animation:spin .8s linear infinite}.workflow-head h3{font-size:15px;margin:0 0 3px}.workflow-head p{margin:0;color:#9999a3;font-size:10px}.percent{text-align:right;display:grid;gap:2px}.percent strong{font-size:17px;color:var(--violet)}.percent small{font-size:9px;color:#9999a3}.progress{height:3px;background:#efedf4}.progress i{display:block;width:32%;height:100%;background:var(--violet)}
+    .steps{padding:14px 20px 7px}.step{min-height:49px;display:grid;grid-template-columns:26px 1fr auto;gap:10px;position:relative}.step-no{width:23px;height:23px;border:1px solid #dfdfe5;background:#f2f2f5;color:#a2a2ac;border-radius:50%;display:grid;place-items:center;font-size:10px;z-index:1}.step.done .step-no{background:#eaf7f1;border-color:#cbeadc;color:var(--green)}.step.run .step-no{background:var(--violet-soft);border-color:#dcd5ff}.spin{width:10px;height:10px;border:2px solid #cfc7ff;border-top-color:var(--violet);border-radius:50%;animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.step:after{content:"";position:absolute;left:11px;top:23px;height:calc(100% - 1px);border-left:1px solid #e4e4e9}.step:last-child:after{display:none}.step-copy{display:grid;gap:3px;padding-top:2px}.step-copy strong{font-size:11px}.step-copy small{color:#9999a3;font-size:9px}.step-state{font-size:9px;color:#aaaab2;padding-top:4px}.step.run .step-state{color:var(--violet)}.workflow-foot{border-top:1px solid var(--line);background:#fbfbfd;padding:12px 18px;display:flex;align-items:center;justify-content:space-between}.workflow-foot span{color:#898993;font-size:10px}.primary{border:0;background:var(--violet);color:#fff;border-radius:7px;padding:9px 13px;font-size:10px;font-weight:650}
+    .workflow-body{display:grid;grid-template-columns:minmax(340px,.78fr) minmax(440px,1.22fr)}.workflow-body>.steps{border-right:1px solid var(--line)}.collection-detail{padding:15px 17px 17px;background:#fcfcfe}.collection-detail-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.collection-detail-head span{display:grid;gap:3px}.collection-detail-head small{font-size:8px;color:var(--violet);font-weight:700;letter-spacing:.08em}.collection-detail-head strong{font-size:12px}.collection-detail-head b{font-size:8px;color:var(--green);background:#eaf7f1;border-radius:4px;padding:5px 7px}.source-block{padding:10px 0;border-top:1px solid #ececf1}.source-block:first-of-type{border-top:0}.source-block h4{margin:0 0 7px;font-size:10px;display:flex;align-items:center;gap:6px}.source-block h4 i{font-style:normal;width:18px;height:18px;border-radius:5px;display:grid;place-items:center;background:#efecff;color:var(--violet);font-size:8px}.source-lines{display:grid;gap:5px}.source-line{display:grid;grid-template-columns:92px 1fr auto;gap:8px;align-items:baseline;color:#666671;font-size:9px;line-height:1.5}.source-line b{color:#2f2f38;font-weight:650}.source-line em{font-style:normal;font-size:8px;color:#9a9aa4}.source-line .gain{color:#d63d45}.source-line .loss{color:#16805b}.report-list{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px}.report-item{font-size:8px;color:#666671;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.report-item b{color:#383842}
+    #review{display:none}.review-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px}.complete{min-height:68px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;border:1px solid #cde9de;background:#f2fbf7;border-radius:10px}.complete-icon{width:31px;height:31px;border-radius:50%;display:grid;place-items:center;background:#d9f2e7;color:var(--green);font-weight:800}.complete div{display:grid;gap:4px;flex:1}.complete strong{font-size:13px}.complete small{font-size:10px;color:#6f8f81}.complete button{border:0;background:none;color:#388a68;font-size:10px}.editor{overflow:hidden}.editor-head{min-height:63px;padding:13px 17px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}.editor-head div:first-child{display:grid;gap:4px}.editor-head span{font-size:9px;color:var(--violet);font-weight:700}.editor-head strong{font-size:13px}.editor-head button{border:1px solid #dddde4;background:#fff;border-radius:6px;padding:6px 10px;font-size:10px;margin-left:5px}.editor textarea{width:100%;height:505px;border:0;outline:0;resize:none;padding:22px 25px;font-size:12px;line-height:1.85;color:#303039}.editor-foot{border-top:1px solid var(--line);padding:11px 17px;display:flex;justify-content:space-between;color:#9999a3;font-size:9px}.editor-foot b{color:var(--green)}.publish{padding:18px 14px;height:max-content}.publish h3{font-size:15px;margin:4px 3px 13px}.publish>small{font-size:9px;color:#9999a3;margin-left:3px}.channel{width:100%;display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;border:1px solid var(--line);background:#fff;border-radius:8px;padding:12px 10px;margin-bottom:8px;text-align:left}.channel:hover{border-color:#cbc4ef;background:#fcfbff}.channel-icon{width:31px;height:31px;border-radius:7px;display:grid;place-items:center;background:#efebff;color:var(--violet);font-size:11px;font-weight:700}.channel:nth-of-type(2) .channel-icon{background:#e8f7f1;color:#278a69}.channel:nth-of-type(3) .channel-icon{background:#fff1e2;color:#d97922}.channel:nth-of-type(4) .channel-icon{background:#eaf3ff;color:#3977b8}.channel span:nth-child(2){display:grid;gap:3px}.channel strong{font-size:11px}.channel small{font-size:9px;color:#9999a3}.channel b{font-size:9px;color:#8d8d97}.notice{display:flex;gap:8px;background:#f7f7f9;border-radius:7px;padding:10px;color:#92929c;font-size:9px;line-height:1.55;margin-top:13px}
+    .conversation{max-width:1040px;margin:0 auto}.signal{min-height:116px;padding:19px 20px;display:grid;grid-template-columns:43px 1fr auto;gap:16px;align-items:center}.signal.danger{background:#fffafa;border-color:#f0d4d4}.signal-icon{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--red);color:#fff;font-size:18px;font-weight:800;box-shadow:0 7px 16px rgba(220,69,75,.22)}.signal.portfolio .signal-icon{background:var(--violet);box-shadow:0 7px 16px rgba(104,82,223,.22)}.signal-copy h3{font-size:17px;margin:4px 0 6px}.signal-copy p{font-size:11px;line-height:1.6;color:#777782;margin:0}.red-label{color:var(--red)}.signal-data{min-width:130px;padding-left:19px;border-left:1px solid rgba(220,69,75,.13);text-align:right;display:grid;gap:4px}.signal-data strong{font-size:22px;color:var(--red)}.signal.portfolio .signal-data strong.loss,.signal-data strong.loss{color:#59cf9e}.signal-data span{font-size:9px;color:#9999a3}
+    .thread{padding:24px 28px 0 18px}.message{display:flex;gap:11px;margin-bottom:21px}.msg-avatar{position:relative;width:31px;height:31px;border-radius:9px;display:grid;place-items:center;background:var(--violet);color:#fff;font-size:0;font-weight:700;flex:none}.msg-avatar:before{content:"";position:absolute;top:7px;width:7px;height:7px;border-radius:50%;background:#fff}.msg-avatar:after{content:"";position:absolute;bottom:6px;width:14px;height:8px;border-radius:8px 8px 4px 4px;background:#fff}.msg-avatar.group{background:#2e8b6b}.bubble{flex:1;min-width:0}.msg-meta{min-height:28px;display:flex;align-items:center;gap:8px}.msg-meta strong{font-size:11px}.msg-meta time{margin-left:auto;color:#aaaab2;font-size:9px}.bubble>p{margin:0;padding:13px 15px;border:1px solid var(--line);border-radius:5px 10px 10px 10px;background:#fff;color:#555560;font-size:11px;line-height:1.7}.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.chips span{padding:5px 7px;border-radius:5px;background:#eeeafa;color:#6f5fc4;font-size:9px}.user-msg{justify-content:flex-end}.user-msg .bubble{max-width:70%}.user-msg .msg-meta{justify-content:flex-end}.user-msg .msg-meta time{margin-left:0}.user-msg .bubble>p{background:#2b2b35;color:#fff;border:0;border-radius:10px 5px 10px 10px}.draft-bubble{background:#fff;border:1px solid var(--line);border-radius:5px 10px 10px 10px;padding:10px 13px 13px;box-shadow:var(--shadow)}.ready{font-size:9px;color:var(--green);background:#eaf7f1;padding:4px 6px;border-radius:4px}.draft-bubble textarea{width:100%;height:288px;border:0;border-top:1px solid #f0f0f3;outline:0;resize:vertical;padding:15px 3px 8px;font-size:11px;line-height:1.8;color:#3e3e47}.checks{padding-top:10px;border-top:1px solid #f0f0f3}.checks span{background:#edf8f3;color:#368466}.actions{display:flex;gap:7px;align-items:center;padding-top:11px;margin-top:10px;border-top:1px solid #f0f0f3}.actions button{border:1px solid #dedee4;background:#fff;color:#656570;border-radius:6px;padding:7px 10px;font-size:9px}.actions .dark{margin-left:auto;background:#282832;color:#fff;border-color:#282832}
+    .metrics{display:grid;grid-template-columns:repeat(4,1fr);margin-top:12px;overflow:visible}.metric{display:grid;gap:5px;padding:14px 16px;border-right:1px solid var(--line)}.metric:last-child{border:0}.metric span,.metric small{font-size:9px;color:#85858f}.metric strong{font-size:16px;font-weight:750;color:#25252d}.metric strong.gain{color:#d63d45}.metric strong.loss{color:#16805b}.metric strong.green{color:#157657}.impact{display:flex;gap:8px;margin-top:8px}.impact span{border:1px solid var(--line);background:#fff;border-radius:6px;padding:7px 9px;color:#686872;font-size:9px}.impact b{color:#16805b}.estimate{padding-top:10px;color:#81818b;font-size:9px}
+    .delivery-row{display:flex;align-items:center;justify-content:flex-end;gap:7px;padding-top:11px;margin-top:10px;border-top:1px solid #f0f0f3}.copy-action,.send-action{border:1px solid #dcdce3;background:#fff;border-radius:7px;padding:8px 11px;font-size:9px}.copy-action{color:#5e5e69}.group-picker{position:relative}.group-picker summary{list-style:none;border:1px solid #282832;background:#282832;color:#fff;border-radius:7px;padding:8px 11px;font-size:9px;cursor:pointer;white-space:nowrap}.group-picker summary::-webkit-details-marker{display:none}.group-menu{position:absolute;right:0;bottom:calc(100% + 7px);width:188px;background:#fff;border:1px solid #dddde4;border-radius:9px;box-shadow:0 12px 30px rgba(24,22,38,.16);padding:8px;z-index:15}.group-menu label{display:flex;align-items:center;gap:8px;padding:8px;border-radius:6px;font-size:10px}.group-menu label:hover{background:#f5f4fb}.group-menu input{accent-color:var(--violet)}.group-menu button{width:100%;border:0;background:var(--violet);color:#fff;border-radius:6px;padding:8px;margin-top:5px;font-size:9px}
+    .industry-board{display:grid;grid-template-columns:1.2fr repeat(4,1fr);margin-bottom:14px;background:#23232c;color:#fff;border-radius:11px;overflow:hidden;box-shadow:0 8px 24px rgba(28,27,35,.11)}.industry-main,.industry-stat{padding:16px 18px;border-right:1px solid #3a3a44;display:grid;align-content:center;gap:5px}.industry-main small,.industry-stat span{font-size:9px;color:#9999a4}.industry-main strong{font-size:21px}.industry-main em{font-style:normal;font-size:12px}.industry-stat strong{font-size:14px}.source-note{font-size:9px;color:#92929c;margin:8px 2px 0}
+    .intel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}.intel-card{padding:17px 17px 15px;min-height:260px;display:flex;flex-direction:column}.intel-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding-bottom:12px;border-bottom:1px solid #efeff3}.intel-top span{display:grid;gap:4px}.intel-top small{font-size:9px;color:#92929d}.intel-top strong{font-size:14px}.stars{color:#e28d2a;font-size:10px;letter-spacing:1px;white-space:nowrap}.fact-list{display:grid;gap:10px;padding:13px 0 8px}.fact{display:grid;grid-template-columns:17px 1fr;gap:7px;color:#555560;font-size:10px;line-height:1.62}.fact i{width:17px;height:17px;border-radius:5px;background:#efecff;color:#6651d5;display:grid;place-items:center;font-style:normal;font-size:8px;margin-top:1px}.fact b{color:#292931}.evidence-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:auto;padding-top:10px;border-top:1px solid #f0f0f3}.evidence-row span,.evidence-row a{font-size:8px;color:#6f6f79;background:#f4f4f7;border-radius:4px;padding:5px 6px;text-decoration:none}.evidence-row a:hover{color:var(--violet);background:var(--violet-soft)}.neutral-note{margin-top:10px;padding:9px 10px;border-radius:6px;background:#fff9ed;color:#8b6b34;font-size:9px;line-height:1.55}
+    .publish-btn{background:#282832!important;border-color:#282832!important;color:#fff}.publish-confirm{padding:20px}.publish-confirm>p{margin:0 0 14px;color:#6f6f79;font-size:11px;line-height:1.65}.destination-list{display:grid;gap:8px}.destination{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:8px;padding:12px;background:#fff}.destination input{accent-color:var(--violet)}.destination span{display:grid;gap:3px}.destination strong{font-size:11px}.destination small{font-size:9px;color:#9999a3}.publish-note{margin-top:14px;padding:10px;background:#f6f6f9;border-radius:7px;color:#85858f;font-size:9px;line-height:1.6}
+    #industryDraft{height:720px}
+    .run-trigger{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;background:#ede9ff;color:var(--violet);font-size:9px;box-shadow:0 0 0 1px #dcd5ff;transition:.18s}.task-row:hover .run-trigger{background:var(--violet);color:#fff;transform:translateX(1px)}
+    .composer{position:absolute;left:28px;right:28px;bottom:20px;min-height:64px;display:flex;align-items:center;gap:10px;padding:10px 11px;background:rgba(255,255,255,.97);border:1px solid #dadae2;border-radius:13px;box-shadow:0 15px 40px rgba(29,27,45,.14);z-index:8}.agent-orb{width:34px;height:34px;display:grid;place-items:center;border-radius:9px;background:#ede9ff;color:var(--violet);font-size:11px;font-weight:700}.composer input{flex:1;border:0;outline:0;background:none;font-size:11px}.composer button{width:33px;height:33px;border:0;border-radius:9px;background:#292933;color:#fff;font-size:17px}.composer .attach{background:none;color:#85858f}.toast{display:none;position:fixed;left:50%;bottom:102px;transform:translateX(-50%);background:#25252d;color:#fff;border-radius:8px;padding:10px 14px;font-size:11px;box-shadow:0 10px 28px rgba(0,0,0,.22);z-index:30}.toast.show{display:block}.toast b{color:#6bd6a8;margin-right:7px}
+    .channel-modal{display:none;position:fixed;inset:0;background:rgba(20,20,26,.46);z-index:25;align-items:center;justify-content:center;padding:28px}.channel-modal.show{display:flex}.channel-sheet{width:min(760px,100%);max-height:88vh;display:flex;flex-direction:column;background:#fff;border-radius:13px;box-shadow:0 24px 70px rgba(14,13,24,.26);overflow:hidden}.channel-sheet-head{display:flex;align-items:center;justify-content:space-between;padding:17px 20px;border-bottom:1px solid var(--line)}.channel-sheet-head span{display:grid;gap:4px}.channel-sheet-head small{font-size:9px;color:var(--violet);font-weight:700}.channel-sheet-head strong{font-size:15px}.channel-sheet-head button{border:0;background:#f2f2f5;width:29px;height:29px;border-radius:7px}.channel-summary{display:flex;gap:8px;padding:10px 20px;background:#fafafd;border-bottom:1px solid var(--line)}.channel-summary span{font-size:9px;color:#777781;border:1px solid #e5e5ea;background:#fff;border-radius:5px;padding:5px 7px}.channel-output{width:100%;min-height:360px;flex:1;border:0;outline:0;resize:none;padding:20px 22px;font-size:12px;line-height:1.8;color:#34343d}.channel-sheet-foot{display:flex;align-items:center;justify-content:space-between;padding:13px 20px;border-top:1px solid var(--line);background:#fafafd}.channel-sheet-foot span{font-size:9px;color:#92929c}.channel-sheet-foot div{display:flex;gap:8px}.channel-sheet-foot button{border:1px solid #dcdce3;background:#fff;border-radius:7px;padding:8px 12px;font-size:10px}.channel-sheet-foot .copy-btn{background:var(--violet);border-color:var(--violet);color:#fff}
+    .creative-kit{margin-top:13px;border:1px solid #e3dffd;border-radius:9px;background:linear-gradient(135deg,#faf9ff,#f4f1ff);padding:11px}.creative-head{display:flex;align-items:center;gap:8px;margin-bottom:9px}.creative-badge{width:25px;height:25px;border-radius:7px;display:grid;place-items:center;background:var(--violet);color:#fff;font-size:8px;font-weight:750}.creative-head span:last-child{display:grid;gap:2px}.creative-head strong{font-size:10px}.creative-head small{font-size:8px;color:#85858f}.creative-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}.creative-actions button{border:1px solid #dcd6fb;background:#fff;border-radius:7px;padding:8px 7px;color:#5545b6;font-size:8px;text-align:left}.creative-actions button:hover{background:var(--violet-soft)}.modal-creative{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 20px;background:#f7f5ff;border-top:1px solid #e5e0fb}.modal-creative span{display:grid;gap:2px}.modal-creative strong{font-size:9px;color:#4f3db5}.modal-creative small{font-size:8px;color:#898993}.modal-creative div{display:flex;gap:6px}.modal-creative button{border:1px solid #d8d1fa;background:#fff;color:#5b49bd;border-radius:6px;padding:7px 9px;font-size:8px}
+    @media(max-width:1000px){.shell{grid-template-columns:66px 270px minmax(650px,1fr)}.work-head{padding:0 22px}.page{padding-left:20px;padding-right:20px}.composer{left:20px;right:20px}.quote{padding-left:12px;padding-right:12px}.review-grid{grid-template-columns:1fr 260px}.intel-grid{grid-template-columns:1fr}.workflow-body{grid-template-columns:1fr}.workflow-body>.steps{border-right:0;border-bottom:1px solid var(--line)}}
+    @media(max-width:820px){html,body{height:auto;overflow:auto}.shell{display:block;height:auto;overflow:visible}.rail{position:fixed;left:0;right:0;top:0;height:58px;z-index:10;flex-direction:row;padding:0 14px}.rail-nav{display:flex;margin:0 0 0 20px;width:auto}.rail-btn{width:58px;padding:5px 0}.rail-btn.active:before{left:10px;right:10px;top:auto;bottom:0;width:auto;height:3px}.avatar{margin:0 0 0 auto}.tasks{position:fixed;left:0;right:0;top:58px;height:auto;z-index:9}.task-head,.task-list,.task-foot{display:none}.tabs{padding:7px 10px;background:#fff}.work{padding-top:107px;height:auto;min-height:100vh;overflow:visible}.work-head{height:64px;padding:0 15px}.page{height:auto;min-height:calc(100vh - 171px);padding:13px 13px 112px;overflow:visible}.market{overflow:auto}.market-tabs{min-width:110px}.market-pane{min-width:650px}.overview,.review-grid{grid-template-columns:1fr}.sectors{grid-template-columns:1fr}.publish{order:-1}.signal{grid-template-columns:39px 1fr}.signal-data{grid-column:2;border:0;padding:0;text-align:left}.metrics{grid-template-columns:1fr 1fr}.thread{padding-left:3px;padding-right:3px}.composer{position:fixed;left:12px;right:12px;bottom:12px}.channel-modal{padding:12px}.channel-sheet{max-height:92vh}}
+    /* 全局可读性增强：统一放大文字与操作按钮 */
+    .rail-btn{font-size:12px;padding:12px 0}.rail-btn b{font-size:20px}
+    .task-head h1{font-size:23px}.tabs button{font-size:13px;padding:10px 3px}
+    .task-row{padding:14px 12px}.task-copy strong{font-size:14px}.task-copy small{font-size:12px}.task-foot{font-size:12px}
+    .work-head h2{font-size:22px}.crumb{font-size:12px}.bell{width:38px;height:38px}
+    .running{font-size:11px;padding:7px 10px}.workflow-head h3{font-size:17px}.workflow-head p{font-size:11px}.percent strong{font-size:19px}.percent small{font-size:10px}
+    .step{min-height:54px}.step-copy strong{font-size:13px}.step-copy small{font-size:10px;line-height:1.55}.step-state{font-size:10px}
+    .workflow-foot span{font-size:11px}.primary{padding:10px 15px;font-size:11px}
+    .msg-meta strong{font-size:13px}.msg-meta time{font-size:10px}.bubble>p{font-size:12px;line-height:1.8;padding:15px 17px}.chips span{font-size:10px;padding:6px 8px}
+    .draft-bubble textarea{font-size:12px}.ready{font-size:10px;padding:5px 7px}.actions button{padding:9px 13px;font-size:11px}
+    .composer input{font-size:12px}.composer button{min-height:34px;font-size:11px}.quick button{font-size:10px;padding:7px 9px}
+    .signal-copy h3{font-size:19px}.signal-copy p{font-size:12px}.signal-data strong{font-size:24px}.signal-data span{font-size:10px}
+    /* 蓝白工作台视觉统一 */
+    .tabs button.active{color:#1d4ed8}.task-row.selected .task-copy small{color:#64748b}.status.run{border-color:#bfdbfe;border-top-color:#2563eb}
+    .source-block h4 i,.channel-icon,.chips span,.fact i,.run-trigger,.agent-orb{background:#eff6ff;color:#2563eb}
+    .step.run .step-no,.run-trigger{border-color:#bfdbfe}.channel:hover{border-color:#bfdbfe;background:#f8fafc}
+    .creative-kit{border-color:#bfdbfe;background:linear-gradient(135deg,#f8fbff,#eff6ff)}.creative-actions button,.modal-creative button{border-color:#bfdbfe;color:#1d4ed8}
+    .modal-creative{background:#eff6ff;border-color:#dbeafe}.modal-creative strong{color:#1d4ed8}
+  
+    /* 统一工作台排版 */
+    html,body{height:100%;overflow:hidden;background:#e8ecf3!important}
+    body{padding:16px;display:flex;align-items:center;justify-content:center}
+    .shell{width:100%;height:100%;max-width:1600px;max-height:960px;grid-template-columns:76px 340px minmax(0,1fr)!important;border-radius:16px;overflow:hidden;box-shadow:0 24px 70px rgba(15,23,42,.18);border:1px solid rgba(255,255,255,.75);background:#f4f6f9}
+    .rail{width:auto!important;padding:17px 0!important;align-items:center!important;background:linear-gradient(180deg,#123a70,#0f2f5f)!important;color:#fff!important;border-right:0}
+    .account-box{width:100%;height:44px;padding:0;display:flex;align-items:center;justify-content:center;border:0}
+    .account-avatar{width:58px;height:44px;border-radius:10px;display:grid;place-items:center;align-content:center;background:rgba(255,255,255,.12);color:transparent;font-size:0;font-weight:800;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}.account-avatar:before{content:"MCN";color:#fff;font-size:12px;line-height:1}.account-avatar:after{content:"工作台";color:#dbeafe;font-size:9px;line-height:1}
+    .account-copy{display:grid;gap:3px}.account-copy strong{font-size:14px;color:#1e293b}.account-copy span{font-size:11px;color:#94a3b8}
+    .rail-search,.account-copy{display:none}.rail-nav{display:grid!important;gap:7px!important;margin:24px 0 0!important;padding:0!important;width:100%!important}
+    .rail-btn{min-height:55px!important;padding:7px 0!important;border-radius:0!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:4px!important;color:#bfcee2!important;font-size:11px!important;text-align:center!important}
+    .rail-btn b{width:auto;font-size:19px!important;text-align:center}.rail-btn span{font-weight:600}.rail-btn i{display:none}
+    .rail-btn:hover{background:rgba(255,255,255,.06)!important;color:#fff!important}.rail-btn.active{background:rgba(96,165,250,.13)!important;color:#fff!important}.rail-btn.active:before{display:block!important;left:0!important;top:8px!important;bottom:8px!important;width:3px!important;height:auto!important;background:#60a5fa!important}
+    .rail-bottom{margin-top:auto;padding:12px;border-top:1px solid #f1f5f9}.sop-entry{width:100%;height:40px;border:0;border-radius:8px;background:#eff6ff;color:#1d4ed8;display:flex;align-items:center;gap:10px;padding:0 12px;font-weight:700;font-size:13px}.rail-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.rail-tools button{height:34px;border:0;border-radius:8px;background:#f8fafc;color:#64748b}
+    .tasks{background:#f4f6f9!important}.task-head{height:64px;padding:0 20px!important;background:rgba(255,255,255,.84);border-bottom:1px solid #e2e8f0}.task-head h1{font-size:18px!important}.tabs{padding:10px 12px 12px!important;background:#fff;border-bottom:1px solid #e2e8f0}.task-list{padding:12px!important}.task-row{border:1px solid transparent}.task-row.selected,.task-row.alert-selected{background:#fff!important;border-color:#bfdbfe!important;box-shadow:0 7px 22px rgba(37,99,235,.08)}
+    .work{height:100%!important;background:#fff!important}.page{padding:20px 24px 128px!important;background:#f8fafc}
+    .composer{left:24px!important;right:24px!important;bottom:18px!important}
+    @media(max-width:1000px){.shell{grid-template-columns:76px 320px minmax(680px,1fr)!important}}
+    /* 恢复参考页白色宽侧栏 */
+    .shell{grid-template-columns:220px 340px minmax(0,1fr)!important}
+    .rail{padding:0!important;align-items:stretch!important;background:#fff!important;color:#334155!important;border-right:1px solid #e2e8f0}
+    .account-box{height:72px;padding:14px 16px;justify-content:flex-start;gap:11px;border-bottom:1px solid #f1f5f9}.account-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;font-size:0;box-shadow:0 5px 14px rgba(37,99,235,.2)}.account-avatar:before{content:"M";font-size:14px;color:#fff}.account-avatar:after{display:none}.account-copy{display:grid}.rail-search{display:flex}
+    .rail-nav{gap:4px!important;margin:0!important;padding:4px 12px!important}.rail-btn{min-height:42px!important;padding:0 11px!important;border-radius:8px!important;flex-direction:row!important;justify-content:flex-start!important;gap:11px!important;color:#64748b!important;font-size:13px!important;text-align:left!important}.rail-btn b{width:20px;font-size:18px!important}.rail-btn i{display:grid}.rail-btn:hover,.rail-btn.active{background:#eff6ff!important;color:#2563eb!important}.rail-btn.active:before{display:none!important}
+    @media(max-width:1000px){.shell{grid-template-columns:220px 320px minmax(680px,1fr)!important}}
+    @media(max-width:820px){body{padding:0;display:block}.shell{border-radius:0;max-width:none;max-height:none}.rail{display:none!important}.tasks{display:none!important}.work{padding-top:0!important}.page{padding:14px 14px 110px!important}.composer{left:12px!important;right:12px!important}}
+
+    /* 平台约稿 */
+    .tabs{flex-wrap:wrap}.tabs button{min-width:72px}.tabs .dot.hidden{display:none}.count.hidden{display:none}
+    .commission-wrap{max-width:1040px;margin:0 auto}.commission-ticket{padding:22px}.commission-ticket-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:17px;border-bottom:1px solid var(--line)}.commission-ticket-title{display:grid;gap:6px}.commission-ticket-title span{font-size:10px;color:var(--red);font-weight:750}.commission-ticket-title h3{margin:0;font-size:20px}.commission-ticket-title p{margin:0;color:#64748b;font-size:12px;line-height:1.7}.commission-ticket-no{text-align:right;display:grid;gap:4px}.commission-ticket-no strong{font-size:11px;color:#475569}.commission-ticket-no small{font-size:10px;color:#94a3b8}.commission-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}.commission-meta div{border:1px solid #e2e8f0;background:#f8fafc;border-radius:9px;padding:12px;display:grid;gap:5px}.commission-meta span{font-size:9px;color:#94a3b8}.commission-meta strong{font-size:11px;color:#334155}.commission-requirements{margin-top:14px;padding:14px 15px;border-radius:9px;background:#fff8f1;border:1px solid #fed7aa;color:#7c4a1e;font-size:10px;line-height:1.8}.commission-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}.commission-actions button{border:1px solid #dbe1ea;background:#fff;border-radius:8px;padding:9px 15px;font-size:11px}.commission-actions .reject{color:#b4232c}.commission-actions .accept{background:#2563eb;border-color:#2563eb;color:#fff;font-weight:700}
+    .commission-form{padding:18px}.commission-form h3{margin:0 0 5px;font-size:15px}.commission-form>p{margin:0 0 16px;color:#64748b;font-size:10px;line-height:1.65}.commission-question{padding:14px 0;border-top:1px solid #edf0f4}.commission-question:first-of-type{border-top:0}.commission-question>label{display:block;margin-bottom:9px;font-size:11px;font-weight:700}.commission-options{display:flex;flex-wrap:wrap;gap:8px}.commission-option{position:relative}.commission-option input{position:absolute;opacity:0;pointer-events:none}.commission-option span{display:block;border:1px solid #dbe1ea;background:#fff;border-radius:8px;padding:9px 12px;font-size:10px;color:#475569;cursor:pointer}.commission-option input:checked+span{border-color:#2563eb;background:#eff6ff;color:#1d4ed8;font-weight:700;box-shadow:0 0 0 2px rgba(37,99,235,.08)}.commission-question textarea{width:100%;height:78px;border:1px solid #dbe1ea;border-radius:8px;padding:11px 12px;resize:vertical;outline:0;font-size:11px;line-height:1.6}.commission-question textarea:focus{border-color:#93b4f6;box-shadow:0 0 0 3px #eff6ff}.commission-submit{display:flex;justify-content:flex-end;padding-top:15px}.commission-submit button{border:0;background:#2563eb;color:#fff;border-radius:8px;padding:10px 16px;font-size:11px;font-weight:700}
+    .commission-agent-card{margin-top:14px}.commission-status{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}.commission-status span{background:#edf8f3;color:#267457;border-radius:5px;padding:6px 8px;font-size:9px}.commission-draft textarea{height:780px}.commission-sources{display:flex;flex-wrap:wrap;gap:7px;padding-top:11px;border-top:1px solid #edf0f4}.commission-sources a{font-size:9px;color:#2563eb;background:#eff6ff;border-radius:5px;padding:6px 8px;text-decoration:none}.commission-asset-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.commission-asset{border:1px solid #e2e8f0;background:#f8fafc;border-radius:8px;padding:10px;display:grid;gap:4px}.commission-asset strong{font-size:10px}.commission-asset small{font-size:9px;color:#94a3b8;line-height:1.5}
+    @media(max-width:1000px){.commission-meta{grid-template-columns:1fr 1fr}.commission-asset-row{grid-template-columns:1fr}}
+
+    /* ===== 内容创作工作台增强样式 ===== */
+    .task-title-row{display:flex;align-items:center;gap:6px;min-width:0}
+    .task-title{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+    .unread-dot{flex:0 0 6px;width:6px;height:6px;border-radius:50%;background:#ef4444;margin-top:1px;pointer-events:none}
+    /* 左侧任务语义图标：沿用其他工作台的圆角线性图标体系 */
+    .task-glyph{position:relative;flex:0 0 30px;width:30px;height:30px;display:grid;place-items:center;border:1px solid #dbeafe;border-radius:9px;background:#eff6ff;color:#2563eb;box-shadow:0 2px 6px rgba(37,99,235,.05);transition:transform .18s,background .18s,color .18s,border-color .18s,box-shadow .18s}
+    .task-glyph svg{width:16px;height:16px;display:block}
+    .task-glyph.portfolio{background:#f3f0ff;border-color:#e2ddff;color:#6758c7}
+    .task-glyph.commission{background:#fff7ed;border-color:#fed7aa;color:#c66b16}
+    .task-glyph.urgent{background:#fff1f2;border-color:#fecdd3;color:#d7464d}
+    .task-glyph.has-alert:after{content:"";position:absolute;right:-2px;top:-2px;width:7px;height:7px;border:2px solid #f4f6f9;border-radius:50%;background:#ef4444}
+    .task-row:hover .task-glyph{transform:translateY(-1px);box-shadow:0 5px 12px rgba(37,99,235,.11)}
+    .task-row.selected .task-glyph,.task-row.alert-selected .task-glyph{border-color:#2563eb;background:#2563eb;color:#fff;box-shadow:0 6px 14px rgba(37,99,235,.2)}
+    .task-row.selected .task-glyph.has-alert:after,.task-row.alert-selected .task-glyph.has-alert:after{border-color:#fff}
+    /* 顶栏与三点菜单 */
+    .agent-topbar{display:flex;align-items:center;justify-content:space-between;height:64px;padding:0 24px;background:#fff;border-bottom:1px solid #e2e8f0}
+    .agent-top-main{display:flex;align-items:center;gap:12px}
+    .agent-top-avatar{width:36px;height:36px;border-radius:10px;background:#2563eb;display:grid;place-items:center;color:#fff;box-shadow:0 8px 18px rgba(37,99,235,.22)}
+    .agent-top-avatar svg{width:20px;height:20px}
+    .agent-top-copy{display:grid;gap:2px}
+    .agent-top-copy strong{font-size:16px;color:#1e293b}
+    .agent-top-copy span{font-size:11px;color:#94a3b8}
+    .agent-top-more-wrap{position:relative}
+    .agent-top-more{width:34px;height:34px;border:0;border-radius:8px;background:transparent;color:#64748b;font-size:20px;line-height:1;cursor:pointer}
+    .agent-top-more:hover{background:#eff6ff;color:#2563eb}
+    .chat-menu{position:absolute;right:0;top:44px;width:184px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 16px 40px rgba(15,23,42,.14);padding:6px;z-index:50}
+    .chat-menu.hidden{display:none}
+    .chat-menu button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;padding:9px 10px;border-radius:8px;color:#334155;font-size:13px;text-align:left;cursor:pointer}
+    .chat-menu button:hover{background:#f1f5f9;color:#2563eb}
+    .chat-menu svg{width:16px;height:16px;color:#64748b;flex:0 0 auto}
+    /* 历史对话弹窗 */
+    .history-modal{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:80;display:none;align-items:center;justify-content:center}
+    .history-modal.show{display:flex}
+    .history-panel{width:min(460px,92vw);max-height:78vh;background:#fff;border-radius:16px;box-shadow:0 24px 70px rgba(15,23,42,.26);display:flex;flex-direction:column;overflow:hidden}
+    .history-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #e2e8f0}
+    .history-head strong{font-size:15px;color:#1e293b}
+    .history-head button{border:0;background:#f1f5f9;width:30px;height:30px;border-radius:8px;color:#64748b;cursor:pointer;font-size:18px}
+    .history-list{flex:1;overflow:auto;padding:10px}
+    .history-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;cursor:pointer}
+    .history-item:hover{background:#f1f5f9}
+    .history-item .hi-ico{width:34px;height:34px;border-radius:9px;background:#eff6ff;color:#2563eb;display:grid;place-items:center;flex:0 0 auto}
+    .history-item .hi-ico svg{width:18px;height:18px}
+    .history-item .hi-name{font-size:13px;color:#334155;font-weight:600}
+    .history-item .hi-sub{font-size:11px;color:#94a3b8}
+    /* 消息头像：用 SVG 替换默认机器人脸 */
+    .msg-avatar::before,.msg-avatar::after{display:none!important}
+    .msg-avatar svg{width:17px;height:17px}
+    /* 场景任务与监测页 */
+    .task-dialogue{max-width:920px;margin:0 auto}
+    .task-brief{padding:20px 22px;display:grid;gap:17px}
+    .task-brief-top{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
+    .task-brief-title{display:grid;gap:5px}.task-brief-title small{font-size:10px;color:#2563eb;font-weight:750}.task-brief-title h3{font-size:19px;margin:0}.task-brief-title p{font-size:11px;color:#64748b;line-height:1.65;margin:0}
+    .task-live{display:inline-flex;align-items:center;gap:7px;border-radius:999px;background:#ecfdf5;color:#16805b;padding:7px 10px;font-size:10px;font-weight:700;white-space:nowrap}.task-live:before{content:"";width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.12)}
+    .task-flow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.task-flow span{position:relative;border:1px solid #e2e8f0;background:#f8fafc;border-radius:9px;padding:11px 10px 11px 31px;color:#475569;font-size:10px;line-height:1.45}.task-flow span b{position:absolute;left:10px;top:10px;width:15px;height:15px;border-radius:50%;display:grid;place-items:center;background:#dbeafe;color:#2563eb;font-size:8px}
+    .task-detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.task-detail{border-top:1px solid #edf0f4;padding-top:12px;display:grid;gap:5px}.task-detail span{font-size:9px;color:#94a3b8}.task-detail strong{font-size:11px;color:#334155;line-height:1.55}
+    .dialogue-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.dialogue-actions button{border:1px solid #cfd8e6;background:#fff;color:#475569;border-radius:8px;padding:9px 12px;font-size:10px}.dialogue-actions button.primary-action{border-color:#2563eb;background:#2563eb;color:#fff;font-weight:700}.dialogue-actions button:hover{border-color:#93b4f6;background:#eff6ff;color:#1d4ed8}.dialogue-actions button.primary-action:hover{background:#1d4ed8;color:#fff}
+    .industry-prompt-card{margin-top:10px;padding:13px 14px;border:1px solid #dbeafe;background:#f8fbff;border-radius:9px;display:grid;gap:9px}.industry-prompt-card strong{font-size:11px}.industry-prompt-card p{margin:0;color:#475569;font-size:10px;line-height:1.7}.industry-prompt-card .prompt-example{color:#1d4ed8;background:#eff6ff;border-radius:7px;padding:9px 10px}
+    .market-monitor{max-width:980px;margin:0 auto}.watch-board{padding:19px 20px}.watch-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:15px}.watch-head h3{font-size:17px;margin:3px 0 4px}.watch-head p{font-size:10px;color:#64748b;margin:0}.watch-quotes{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.watch-quote{border:1px solid #e2e8f0;background:#f8fafc;border-radius:9px;padding:12px;display:grid;gap:5px}.watch-quote span{font-size:9px;color:#94a3b8}.watch-quote strong{font-size:15px}.watch-quote small{font-size:9px;color:#64748b}.watch-rules{margin-top:14px;padding:18px 20px}.rule-row{display:grid;grid-template-columns:1fr 160px 80px;gap:12px;align-items:center;padding:12px 0;border-top:1px solid #edf0f4}.rule-row:first-of-type{border-top:0}.rule-copy{display:grid;gap:4px}.rule-copy strong{font-size:11px}.rule-copy small{font-size:9px;color:#94a3b8}.rule-threshold{font-size:10px;color:#475569}.rule-state{justify-self:end;font-size:9px;color:#16805b;background:#ecfdf5;border-radius:5px;padding:5px 7px}
+    .stock-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}.stock-card{padding:15px 16px;display:grid;gap:11px}.stock-name{display:flex;align-items:flex-start;justify-content:space-between}.stock-name span{display:grid;gap:4px}.stock-name small{font-size:9px;color:#94a3b8}.stock-name strong{font-size:13px}.stock-move{font-size:13px!important}.stock-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stock-meta div{background:#f8fafc;border-radius:7px;padding:8px;display:grid;gap:3px}.stock-meta span{font-size:8px;color:#94a3b8}.stock-meta b{font-size:10px}.stock-status{border-top:1px solid #edf0f4;padding-top:10px;color:#b76b13;font-size:9px}
+    .workflow .progress i{transition:width .55s ease}.step{transition:opacity .3s ease}.step.is-pending{opacity:.48}.collection-detail.collecting .source-block{opacity:.46;filter:saturate(.55)}.collection-detail .source-block{transition:opacity .4s ease,filter .4s ease}
+    @media(max-width:1000px){.task-flow,.watch-quotes{grid-template-columns:1fr 1fr}.stock-grid{grid-template-columns:1fr}.task-detail-grid{grid-template-columns:1fr}.rule-row{grid-template-columns:1fr auto}.rule-threshold{grid-column:1}.rule-state{grid-column:2;grid-row:1/3}}
+    /* 发送按钮：纸飞机图标 */
+    .uc-send svg{width:18px;height:18px}
+  </style>
+  <link rel="stylesheet" href="mcn-sidebar.css?v=20260728-24">
+  <script src="mcn-sidebar.js?v=20260728-19" defer></script>
+  <link rel="stylesheet" href="mcn-composer.css">
+  <link rel="stylesheet" href="mcn-chat.css?v=20260728-5">
+  <style>/* 真实头像：白底与页面底色自然融合 */.agent-top-avatar::before,.agent-top-avatar::after{display:none!important}.agent-top-avatar{background:#fff!important;border-radius:50%!important;width:42px!important;height:42px!important;flex:0 0 42px!important;overflow:hidden!important}.agent-top-avatar img{width:100%;height:100%;object-fit:cover;object-position:50% 30%;border-radius:50%;display:block;mix-blend-mode:multiply}/* 统一对话消息头像尺寸 42px */.msg-avatar{width:42px!important;height:42px!important;border-radius:50%!important;background:transparent!important;overflow:hidden!important}.msg-avatar::before,.msg-avatar::after{display:none!important}.msg-avatar img{width:100%;height:100%;object-fit:cover;object-position:50% 30%;border-radius:50%;display:block;mix-blend-mode:multiply}</style>
+  <script src="mcn-composer.js" defer></script>
+  <script src="mcn-account-menu.js?v=20260729-1" defer></script>
+</head>
+<body>
+  <main class="shell">
+    <aside class="rail mcn-sidebar">
+      <div class="mcn-brand"><div class="mcn-logo" aria-label="MCN 工作台"></div><strong>MCN 工作台</strong></div>
+      <div class="mcn-search" id="searchWrap">
+        <div class="mcn-search-inner">
+          <svg class="mcn-search-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          <input id="globalSearch" type="text" placeholder="搜索应用、工作流、消息" autocomplete="off" aria-label="搜索应用、工作流、消息" />
+          <button id="searchClear" class="hidden" aria-label="清除搜索"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="12" height="12"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+        </div>
+        <div id="searchResults" class="hidden"></div>
+      </div>
+      <nav class="mcn-nav">
+        <button class="mcn-nav-item" onclick="location.href='index.html'"><svg class="mcn-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg><span class="mcn-nav-label">首页</span></button>
+        <button class="mcn-nav-item active"><svg class="mcn-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg><span class="mcn-nav-label">内容创作</span><span class="mcn-nav-badge" id="tabContentBadge">4</span></button>
+        <button class="mcn-nav-item" onclick="location.href='lead-insights.html'"><svg class="mcn-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg><span class="mcn-nav-label">线索洞察</span><span class="mcn-nav-badge">5</span></button>
+        <button class="mcn-nav-item" onclick="location.href='http://stable-mncou8kdwb7xte0s-sandbox-preview.fe.htsc/'"><svg class="mcn-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg><span class="mcn-nav-label">客户问答</span><span class="mcn-nav-badge">2</span></button>
+        <button class="mcn-nav-item" onclick="location.href='operations-review.html'"><svg class="mcn-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg><span class="mcn-nav-label">运营复盘</span><span class="mcn-nav-badge">3</span></button>
+        <button class="mcn-nav-item mcn-workbench-toggle" type="button"><span class="mcn-nav-icon mcn-grid-icon"><i></i><i></i><i></i><i></i></span><span class="mcn-nav-label">业务平台</span></button>
+        <button class="mcn-nav-item" type="button" onclick="location.href='http://stable-8kbc7hhm4urfkvt6-sandbox-preview.fe.htsc/'"><span class="mcn-nav-icon">⚙</span><span class="mcn-nav-label">SOP 管理</span></button>
+      </nav>
+      <div class="mcn-account"><div class="mcn-account-avatar"><img src="pictures/主1.jpg" style="width:100%;height:100%;object-fit:cover;border-radius:10px;display:block" alt="工作室头像"></div><div class="mcn-account-copy"><strong>麦西恩</strong></div></div>
+      <div class="mcn-staff">
+        <span class="lbl">麦西恩工作室</span>
+        <span class="staff-chip studio"><i></i>麦西恩</span>
+        <span class="staff-chip"><i></i>张三</span>
+        <span class="staff-chip"><i></i>李四</span>
+        <span class="staff-chip off" onclick="if(typeof openAssign==='function')openAssign()"><i></i>王五 <em>下午请假</em></span>
+        <span class="staff-chip"><i></i>赵六</span>
+      </div>
+    </aside>
+
+    <aside class="tasks">
+      <div class="task-head"><div><h1>内容创作</h1></div></div>
+      <div class="tabs">
+        <button class="active" data-mode="daily" onclick="setMode('daily')">日常栏目</button>
+        <button data-mode="alert" onclick="setMode('alert')">市场异动<span class="dot" id="alertModeDot"></span></button>
+        <button data-mode="portfolio" onclick="setMode('portfolio')">组合陪伴</button>
+        <button data-mode="commission" onclick="setMode('commission')">平台约稿<span class="dot" id="commissionModeDot"></span></button>
+      </div>
+      <div class="task-list" id="taskList"></div>
+    </aside>
+
+    <section class="work">
+      <header class="agent-topbar"><div class="agent-top-main"><div class="agent-top-avatar" aria-label="内容创作助手"><img src="pictures/内容3.png" alt="内容创作助手" style="width:100%;height:100%;object-fit:cover;border-radius:10px"></div><div class="agent-top-copy"><strong>内容创作助手</strong></div></div></header>
+      <section class="page active" id="dailyPage">
+        <div id="runningView">
+          <div class="card workflow" style="margin-top:0">
+            <div class="workflow-head"><div class="running" id="strategyRunState">正在采集</div><div><h3>早盘策略</h3><p id="strategyRunMeta">素材截点 07:45 · 正在启动今日任务</p></div><div class="percent"><strong id="strategyPercent">8%</strong><small id="strategyEta">正在连接素材源</small></div></div>
+            <div class="progress"><i id="strategyProgress" style="width:8%"></i></div>
+            <div class="workflow-body">
+              <div class="steps">
+                <div class="step run" id="strategyStep1"><div class="step-no" id="strategyStep1No"><i class="spin"></i></div><div class="step-copy"><strong>采集今日素材</strong><small>公众号、隔夜市场、A股快照与研报</small></div><span class="step-state" id="strategyStep1State">正在运行</span></div>
+                <div class="step is-pending" id="strategyStep2"><div class="step-no" id="strategyStep2No">2</div><div class="step-copy"><strong>分析产业链增量</strong><small>核验半导体、AI 算力与商业航天的新增信息</small></div><span class="step-state" id="strategyStep2State">等待上一步</span></div>
+                <div class="step is-pending"><div class="step-no">3</div><div class="step-copy"><strong>主题联网搜索</strong><small>回溯官方来源、公司公告与关键数字</small></div></div>
+                <div class="step is-pending"><div class="step-no">4</div><div class="step-copy"><strong>准备事实卡与判断卡</strong><small>建立证据边界、反证与失效条件</small></div></div>
+                <div class="step is-pending"><div class="step-no">5</div><div class="step-copy"><strong>检索历史语料</strong><small>匹配开头、解释、操作与相反场景</small></div></div>
+                <div class="step is-pending"><div class="step-no">6</div><div class="step-copy"><strong>生成与声音校验</strong><small>栏目结构、时点、证据和投顾声音审计</small></div></div>
+              </div>
+              <aside class="collection-detail collecting" id="strategyCollection">
+                <div class="collection-detail-head"><span><small>步骤 01 · 采集明细</small><strong id="strategyCollectionTitle">正在查看今日素材</strong></span><b id="strategyCollectionState">采集中</b></div>
+                <div class="source-block">
+                  <h4><i>◇</i>已查看公众号内容</h4>
+                  <div class="source-lines">
+                    <div class="source-line"><b>财联社 · 6 篇</b><span>全球市场晨报、证监会会议七要点、央行逆回购安排</span><em>07:31</em></div>
+                    <div class="source-line"><b>数据宝 · 4 篇</b><span>长鑫科技上市数据、半导体资金流向、宁德时代回购</span><em>07:34</em></div>
+                    <div class="source-line"><b>中国基金报 · 3 篇</b><span>海外科技波动、美伊局势变化、机构周末观点</span><em>07:36</em></div>
+                    <div class="source-line"><b>其他来源 · 5 篇</b><span>研究晨会、公司公告及产业链补充材料</span><em>07:38</em></div>
+                  </div>
+                </div>
+                <div class="source-block">
+                  <h4><i>↗</i>已查看隔夜市场数据</h4>
+                  <div class="source-lines">
+                    <div class="source-line"><b>道琼斯</b><span>51,947.25</span><em class="gain">+0.46%</em></div>
+                    <div class="source-line"><b>标普 500</b><span>7,411.98</span><em class="gain">+0.05%</em></div>
+                    <div class="source-line"><b>纳斯达克</b><span>24,975.82</span><em class="loss">-0.64%</em></div>
+                    <div class="source-line"><b>费城半导体</b><span>11,818.89 · 单日 -524.95</span><em class="loss">-4.25%</em></div>
+                    <div class="source-line"><b>结构信息</b><span>存储与云计算波动放大，苹果逆势上涨 3.5%</span><em>已记录</em></div>
+                  </div>
+                </div>
+                <div class="source-block">
+                  <h4><i>A</i>已查看前一交易日 A 股快照</h4>
+                  <div class="source-lines">
+                    <div class="source-line"><b>主要指数</b><span>上证 3,814.20；深成指 13,774.68；创业板 3,480.87</span><em class="loss">普跌</em></div>
+                    <div class="source-line"><b>科创 50</b><span>1,787 · 相对抗跌</span><em class="loss">-0.14%</em></div>
+                    <div class="source-line"><b>市场广度</b><span>上涨 555 家 / 下跌 4,941 家</span><em>1:9</em></div>
+                    <div class="source-line"><b>成交额</b><span>两市合计 1.93 万亿元</span><em class="loss">缩量 12%</em></div>
+                    <div class="source-line"><b>行业结构</b><span>电子主力净流入 136 亿；银行 +0.59%；有色 -4.74%</span><em>已记录</em></div>
+                  </div>
+                </div>
+                <div class="source-block">
+                  <h4><i>▤</i>已查看研报 7 篇 · 主题摘要</h4>
+                  <div class="report-list">
+                    <div class="report-item"><b>中金公司</b>｜主题：存储价格与国产替代</div>
+                    <div class="report-item"><b>中信建投</b>｜主题：AI资本开支与产业链</div>
+                    <div class="report-item"><b>国金证券</b>｜主题：长鑫科技与DRAM景气</div>
+                    <div class="report-item"><b>天风证券</b>｜主题：政策底与市场底复盘</div>
+                    <div class="report-item"><b>华泰证券</b>｜主题：超级周资产配置</div>
+                    <div class="report-item"><b>招商证券</b>｜主题：美联储与科技估值</div>
+                    <div class="report-item"><b>广发证券</b>｜主题：电网投资景气跟踪</div>
+                  </div>
+                </div>
+              </aside>
+            </div>
+            <div class="workflow-foot"><span>▣ 本轮将生成：标准早盘素材、今日策略、重要事件点评</span><button class="primary" onclick="showReview()">演示完成并进入复核</button></div>
+          </div>
+        </div>
+
+        <div id="review">
+          <div class="review-grid">
+            <div>
+              <div class="complete"><span class="complete-icon">✓</span><div><strong>早盘策略已生成</strong><small>已通过栏目结构、证据时点与声音校验 · 07:42 完成</small></div><button onclick="showRunning()">查看流程</button><button onclick="openChannel('circle','strategy')">去发布 →</button></div>
+              <div class="card editor">
+                <div class="editor-head"><div><span>人工复核</span><strong>《今日策略》编辑参考稿</strong></div><div><button onclick="toast('已恢复助手初稿')">恢复初稿</button><button onclick="toast('修改已保存')">保存</button></div></div>
+                <textarea id="strategyDraft">【今日策略】超级周开幕，利好密集但不确定仍在，科技逢低关注
+
+💰 核心观点
+家人们，这个周末信息量很大——美伊释放缓和信号，油价从 100 美元上方回到 86.67；证监会会议强调稳市场；央行提前预告 2.1 万亿逆回购；宁德时代公布大额回购；长鑫科技今天登陆科创板。
+
+但另一边，上周五费城半导体指数下跌 4.25%，韩国 KOSPI 下跌 5.72% 并触发熔断，A 股 7 月 24 日也是普跌，成交缩量到 1.93 万亿。
+
+郭郭说一下我的观点：好消息在累积，坏消息在消化，但政治局会议、美联储议息、长鑫上市和 AI 巨头财报扎堆。本周核心节奏就是：不追、不恐慌、等回踩找机会。科技主线逢低关注，但分批来，给自己留余地。
+
+境外市场
+周五道指上涨 0.46%，标普上涨 0.05%，纳指下跌 0.64%，费城半导体指数下跌 4.25%。存储和云计算方向跌幅更大，但苹果上涨 3.5%。市场正在区分有业绩支撑的科技与只靠叙事的高估值方向。
+
+美伊缓和带动油价快速回落，今早纳指期货上涨 1.24%。油价下去，通胀和加息压力就会小一些，对全球科技成长方向偏友好，但地缘变化仍可能反复。
+
+日韩市场
+上周五韩国 KOSPI 下跌 5.72% 并触发熔断，日本日经下跌 2.73%。一边是韩国杠杆资金出清，一边是三星与 SK 的大额芯片合作消息，短期资金冲击和中期产业需求要分开看。截至 07:45，日韩市场尚未开盘。
+
+前一交易日 A 股
+7 月 24 日，上证下跌 1.61% 收于 3814.20 点，深成指下跌 2.47% 收于 13774.68 点，创业板下跌 2.65% 收于 3480.87 点，涨跌比 555:4941，两市成交 1.93 万亿。
+
+但科创 50 只下跌 0.14%，电子行业主力资金净流入 136 亿。整体是“指数普跌、科创抗跌、电子吸金”的结构分化，市场不好，但不是毫无方向。
+
+重要催化 / 关键窗口
+1. 长鑫科技今日上市：国产 DRAM 迎来新的市场定价锚。
+2. 美联储 7 月 28-29 日议息：油价回落后，重点看利率态度。
+3. 政治局会议：验证稳增长与产业政策力度。
+4. AI 巨头财报：重点看云厂商资本开支是否继续上调。
+
+技术上
+上证收于 3814 点，仍在 3800 区域附近。成交连续缩量，说明资金观望明显。科创 50 在普跌日相对抗跌，但长鑫上市可能放大日内波动。今天看收盘，不因为开盘的情绪波动立刻改变判断。
+
+⭐ 今天整体操作
+一句话：不追、不恐慌，等回踩或是机会。
+
+有持仓的伙伴们不急着因为周末消息做大动作；没持仓的伙伴们等回踩分批关注。科技方向重点看半导体、存储和 AI 算力。涨了不盲目追，跌了再找舒服的位置。不会做波段的就别做了，不然容易卖飞，波段不做也罢。</textarea>
+                <div class="editor-foot"><span>1,548 字 · 预计阅读 6 分钟</span><b>✓ 栏目结构与风险提示完整</b></div>
+              </div>
+            </div>
+            <aside class="card publish">
+              <small>完成复核后</small><h3>生成多渠道内容</h3>
+              <button class="channel" onclick="openChannel('circle','strategy')"><span class="channel-icon">◎</span><span><strong>财富圈</strong><small>600—900 字 · 观点、节奏、风险</small></span><b>生成预览 →</b></button>
+              <button class="channel" onclick="openChannel('group','strategy')"><span class="channel-icon">♧</span><span><strong>微信群</strong><small>280—350 字 · 可分 3 段发送</small></span><b>生成预览 →</b></button>
+              <button class="channel" onclick="openChannel('video','strategy')"><span class="channel-icon">▶</span><span><strong>短视频脚本</strong><small>90 秒 · 钩子、正文、收口</small></span><b>生成预览 →</b></button>
+              <button class="channel" onclick="openChannel('wechat','strategy')"><span class="channel-icon">◇</span><span><strong>微信图文</strong><small>标题、摘要与分节排版</small></span><b>生成预览 →</b></button>
+              <div class="notice">⌁ <span>所有渠道稿都会保留来源、合规提示与人工确认环节，不会自动发布。</span></div>
+              <div class="creative-kit"><div class="creative-head"><span class="creative-badge">AI</span><span><strong>AI 创作包</strong><small>带着正文和制作 Prompt 去其他平台继续创作</small></span></div><div class="creative-actions"><button onclick="openCreativePrompt('video','strategyDraft','早盘策略')">▶ 短视频制作 Prompt</button><button onclick="openCreativePrompt('image','strategyDraft','早盘策略')">◇ 图片制作 Prompt</button></div></div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="dailyEventPage">
+        <div id="eventRunning">
+          <div class="overview">
+            <div class="card mini-card">
+              <div class="card-head"><div><span class="label">已入选事件</span><h3>今日重大事件池</h3></div><span class="chip">5 件</span></div>
+              <div class="calendar-row"><time>宏观</time><span><strong>美伊释放缓和信号</strong><small>油价、通胀与科技估值</small></span><i class="priority">1</i></div>
+              <div class="calendar-row"><time>政策</time><span><strong>证监会稳市场表态</strong><small>政策底与风险防护</small></span><i class="priority">2</i></div>
+              <div class="calendar-row"><time>产业</time><span><strong>长鑫上市与存储大单</strong><small>国产 DRAM · AI 硬件</small></span><i class="priority">3</i></div>
+            </div>
+            <div class="card mini-card">
+              <div class="card-head"><div><span class="label">覆盖检查</span><h3>事件解释维度</h3></div><button onclick="toast('覆盖审计已展开')">查看审计</button></div>
+              <div class="sectors">
+                <div class="sector"><em>事实</em><strong>发生了什么</strong><small>时间、数字、来源状态</small></div>
+                <div class="sector"><em>影响</em><strong>产业链传导</strong><small>直接影响与上下游映射</small></div>
+                <div class="sector"><em>周期</em><strong>短期还是中期</strong><small>区分情绪冲击与产业变化</small></div>
+                <div class="sector"><em>验证</em><strong>接下来观察什么</strong><small>反证、失效条件与窗口</small></div>
+              </div>
+            </div>
+          </div>
+          <div class="card workflow">
+            <div class="workflow-head"><div class="running">正在生成</div><div><h3>重要事件点评</h3><p>共享早盘事件池 · 当前已运行 3 分 16 秒</p></div><div class="percent"><strong>58%</strong><small>预计还需 3 分钟</small></div></div>
+            <div class="progress"><i style="width:58%"></i></div>
+            <div class="steps">
+              <div class="step done"><div class="step-no">✓</div><div class="step-copy"><strong>发现并核验重大事件</strong><small>新闻、公众号、研报、官方与公司来源交叉检查</small></div><span class="step-state">已完成</span></div>
+              <div class="step done"><div class="step-no">✓</div><div class="step-copy"><strong>完成事件覆盖审计</strong><small>5 件入选 · 3 件降级 · 2 件待验证</small></div><span class="step-state">已完成</span></div>
+              <div class="step run"><div class="step-no"><i class="spin"></i></div><div class="step-copy"><strong>逐事件形成判断卡</strong><small>正在区分短期冲击、中期逻辑与客户动作…</small></div><span class="step-state">正在运行</span></div>
+              <div class="step"><div class="step-no">4</div><div class="step-copy"><strong>检索相似与相反场景</strong><small>匹配事件解释、操作语言和边界样本</small></div></div>
+              <div class="step"><div class="step-no">5</div><div class="step-copy"><strong>生成并声音校验</strong><small>按事件组织，不预写盘中时间线</small></div></div>
+            </div>
+            <div class="workflow-foot"><span>▣ 将生成：标准事件素材、重要事件点评编辑参考稿</span><button class="primary" onclick="showEventReview()">演示完成并进入复核</button></div>
+          </div>
+        </div>
+
+        <div id="eventReview" style="display:none">
+          <div class="review-grid">
+            <div>
+              <div class="complete"><span class="complete-icon">✓</span><div><strong>重要事件点评已生成</strong><small>5 个事件均已覆盖影响、周期、节奏与验证项</small></div><button onclick="showEventRunning()">查看流程</button><button onclick="openChannel('circle','event')">去发布 →</button></div>
+              <div class="card editor">
+                <div class="editor-head"><div><span>人工复核</span><strong>《超级周开幕》重要事件点评</strong></div><div><button onclick="toast('已恢复助手初稿')">恢复初稿</button><button onclick="toast('修改已保存')">保存</button></div></div>
+                <textarea id="eventDraft">🔥 超级周开幕！美伊缓和、政策信号、长鑫上市——逐件事讲透
+
+家人们，这个周末信息密度很高。今天不按时间线走，只讲已经发生、正在发生，以及接下来要验证的事。
+
+🔥 事件一：美伊释放缓和信号，油价快速回落
+
+到底出了什么事？
+美方暂停对伊朗的连续打击，伊朗也释放对等降温信号。布伦特原油从 100 美元上方回到 86.67，今早纳指期货上涨 1.24%。
+
+为什么重要？
+油价是这一轮全球宏观的重要变量。油价回落，通胀和加息压力会小一些，科技成长估值短期获得喘息。
+
+节奏怎么处理？
+这是短期友好催化，但中东局势仍可能反复。不因为油价跌了就急着加仓，维持不追、不恐慌、等回踩的节奏。接下来验证油价能否稳定、美伊能否进入正式谈判。
+
+🔥 事件二：证监会稳市场表态，政策底信号增强
+
+证监会会议提出维护市场平稳运行、加强逆周期调节，并继续推动中长期资金入市。配合央行提前预告逆回购，政策正在给跨月流动性和市场预期托底。
+
+这属于中期制度性信号，不等于市场明天立刻反转。对科技主线的意义，是下跌容错率提高，但操作上仍然分批，不一把买满。下一步看政治局会议定调与 ETF 资金是否持续流入。
+
+🔥 事件三：长鑫科技上市，国产 DRAM 迎来市场新锚
+
+长鑫科技今日登陆科创板，国产存储产业第一次有了更直接的市场定价参照。它会影响存储、设备、材料和封测的估值体系。
+
+上市首日的涨跌是短期，DRAM 国产替代是中期。大体量 IPO 也可能带来资金分流，半导体日内波动会放大。节奏上先看上市首日收盘、成交与 DRAM 价格，不因为开盘情绪下结论。
+
+🔥 事件四：三星与 SK 的芯片合作，产业需求仍待硬数据确认
+
+周末的大额合作消息，与费城半导体指数下跌 4.25% 形成反差。一边是杠杆资金去化，一边是 AI 硬件需求仍有订单线索。
+
+这件事偏中期产业验证，强化存储、HBM、先进封装和半导体设备方向。但相关金额与合同细节仍需以公司公告和后续财报为准。短期冲击没有消化完，依然不追。
+
+🔥 事件五：宁德时代大额回购，龙头用资金表达信心
+
+大额回购有利于新能源和电池方向的情绪修复，也可能带动市场关注其他龙头的回购动作。但新能源不是当前最核心的跟踪方向，已有持仓可以观察，没持仓不因为单一消息追高。
+
+📋 接下来验证三件事
+第一，政治局会议的政策力度；第二，美联储 7 月 28-29 日议息结果；第三，AI 巨头财报中的资本开支指引。
+
+总结一句话：好消息在累积，坏消息在消化，但超级周的不确定性仍在。节奏上不追、不恐慌、等回踩找机会。</textarea>
+                <div class="editor-foot"><span>1,782 字 · 5 个事件</span><b>✓ 事件结构与证据边界完整</b></div>
+              </div>
+            </div>
+            <aside class="card publish">
+              <small>完成复核后</small><h3>生成多渠道内容</h3>
+              <button class="channel" onclick="openChannel('circle','event')"><span class="channel-icon">◎</span><span><strong>财富圈</strong><small>重点保留事件判断与操作节奏</small></span><b>生成预览 →</b></button>
+              <button class="channel" onclick="openChannel('group','event')"><span class="channel-icon">♧</span><span><strong>微信群</strong><small>按事件拆成 4 段客户素材</small></span><b>生成预览 →</b></button>
+              <button class="channel" onclick="openChannel('video','event')"><span class="channel-icon">▶</span><span><strong>短视频脚本</strong><small>2 分钟 · 三个重点事件</small></span><b>生成预览 →</b></button>
+              <div class="notice">⌁ <span>渠道版本会保留事实时点和风险边界，生成后可继续修改并一键复制。</span></div>
+              <div class="creative-kit"><div class="creative-head"><span class="creative-badge">AI</span><span><strong>AI 创作包</strong><small>生成可复用的视觉制作 Prompt</small></span></div><div class="creative-actions"><button onclick="openCreativePrompt('video','eventDraft','重要事件点评')">▶ 短视频制作 Prompt</button><button onclick="openCreativePrompt('image','eventDraft','重要事件点评')">◇ 图片制作 Prompt</button></div></div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="taskDialoguePage">
+        <div class="task-dialogue">
+          <div class="card task-brief">
+            <div class="task-brief-top">
+              <div class="task-brief-title"><small id="taskSceneLabel">定时任务</small><h3 id="taskSceneTitle">早盘风向标</h3><p id="taskSceneIntro">分析全部跟踪行业的当日动向，识别最值得关注的行业方向。</p></div>
+              <span class="task-live" id="taskSceneState">任务已启用</span>
+            </div>
+            <div class="task-flow" id="taskSceneFlow"></div>
+            <div class="task-detail-grid" id="taskSceneDetails"></div>
+          </div>
+          <div class="thread" id="taskDialogueThread">
+            <div class="message"><div class="msg-avatar" aria-label="内容创作助手"></div><div class="bubble"><div class="msg-meta"><strong>内容创作助手</strong></div><p id="taskAgentMessage"></p><div class="dialogue-actions" id="taskDialogueActions"></div><div class="industry-prompt-card" id="industryPromptCard" style="display:none"><strong>告诉我这次要写什么</strong><p>请补充行业、触发事件、核心观点与希望输出的形式。我会先核验事实，再生成有证据边界的行业深度稿。</p><p class="prompt-example">例如：写一篇通信行业大跌的深度分析，观点是长期仍然看好。</p></div></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="marketWatchPage">
+        <div class="market-monitor">
+          <div class="card watch-board">
+            <div class="watch-head"><div><span class="label">大盘实时监测</span><h3>主要指数运行平稳，暂无触发</h3><p>行情每 3 秒更新一次；本 Demo 仅展示监测状态，不模拟触发。</p></div><span class="task-live">监测中</span></div>
+            <div class="watch-quotes">
+              <div class="watch-quote"><span>上证指数</span><strong class="gain">3,832.46</strong><small class="gain">+0.48% · 10:32:18</small></div>
+              <div class="watch-quote"><span>深证成指</span><strong class="gain">13,846.21</strong><small class="gain">+0.52% · 10:32:18</small></div>
+              <div class="watch-quote"><span>创业板指</span><strong class="loss">3,469.74</strong><small class="loss">-0.32% · 10:32:18</small></div>
+              <div class="watch-quote"><span>两市成交</span><strong>8,426 亿</strong><small>较昨日同期 +3.6%</small></div>
+            </div>
+          </div>
+          <div class="card watch-rules">
+            <div class="watch-head"><div><span class="label">异动监测条件</span><h3>当前启用 4 条规则</h3><p>只有达到阈值才会生成异动建议，普通波动保持静默。</p></div></div>
+            <div class="rule-row"><div class="rule-copy"><strong>主要指数涨跌幅</strong><small>上证、深证、创业板任一指数达到阈值</small></div><div class="rule-threshold">绝对涨跌幅 ≥ 1.50%</div><span class="rule-state">监测中</span></div>
+            <div class="rule-row"><div class="rule-copy"><strong>行业板块快速扩散</strong><small>30 分钟内上涨或下跌行业数量快速增加</small></div><div class="rule-threshold">行业覆盖 ≥ 70%</div><span class="rule-state">监测中</span></div>
+            <div class="rule-row"><div class="rule-copy"><strong>指数突然拉升 / 跳水</strong><small>5 分钟窗口内识别斜率异常与成交放大</small></div><div class="rule-threshold">变动 ≥ 0.80%</div><span class="rule-state">监测中</span></div>
+            <div class="rule-row"><div class="rule-copy"><strong>成交额异常放大</strong><small>对比过去 20 个交易日同时段均值</small></div><div class="rule-threshold">偏离 ≥ 35%</div><span class="rule-state">监测中</span></div>
+          </div>
+          <div class="thread">
+            <div class="message"><div class="msg-avatar" aria-label="内容创作助手"></div><div class="bubble"><div class="msg-meta"><strong>内容创作助手</strong></div><p>大盘异动监测正在运行，目前没有达到需要打扰客户的阈值。你可以新增一条条件，或调整现有条件的指数范围、时间窗口和触发幅度。</p><div class="dialogue-actions"><button class="primary-action" onclick="setSceneComposer('新增条件','例如：新增沪指日内跌幅达到 1.5% 时提醒')">＋ 新增条件</button><button onclick="setSceneComposer('修改条件','例如：把突然跳水的监测窗口改为 3 分钟')">修改条件</button></div></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="stockWatchPage">
+        <div class="market-monitor">
+          <div class="card watch-board">
+            <div class="watch-head"><div><span class="label">自选个股监测</span><h3>3 只个股波动待确认</h3><p>已完成行情层识别，等待结合公告、行业与持仓语境判断是否需要解读。</p></div><span class="task-live">监测中</span></div>
+          </div>
+          <div class="stock-grid">
+            <article class="card stock-card"><div class="stock-name"><span><small>300308 · 光模块</small><strong>中际旭创</strong></span><b class="stock-move gain">+4.86%</b></div><div class="stock-meta"><div><span>5分钟涨幅</span><b class="gain">+2.14%</b></div><div><span>量比</span><b>1.82</b></div></div><div class="stock-status">突然拉升异常 · 待核验是否有新增产业信息</div></article>
+            <article class="card stock-card"><div class="stock-name"><span><small>688041 · 半导体设备</small><strong>海光信息</strong></span><b class="stock-move loss">-3.72%</b></div><div class="stock-meta"><div><span>10分钟跌幅</span><b class="loss">-1.63%</b></div><div><span>量比</span><b>1.46</b></div></div><div class="stock-status">跌幅异常 · 待确认是否为板块情绪传导</div></article>
+            <article class="card stock-card"><div class="stock-name"><span><small>601899 · 黄金</small><strong>紫金矿业</strong></span><b class="stock-move gain">+3.15%</b></div><div class="stock-meta"><div><span>分时偏离</span><b class="gain">+1.28%</b></div><div><span>量比</span><b>1.35</b></div></div><div class="stock-status">涨幅异常 · 待核验金价与板块联动</div></article>
+          </div>
+          <div class="thread">
+            <div class="message"><div class="msg-avatar" aria-label="内容创作助手"></div><div class="bubble"><div class="msg-meta"><strong>内容创作助手</strong></div><p>这 3 只个股只触发了行情条件，还没有直接生成观点。我可以继续核验公告、行业消息和历史波动，也可以调整某只个股的监测阈值。</p><div class="dialogue-actions"><button class="primary-action" onclick="setSceneComposer('核验异动','核验中际旭创突然拉升的原因，并判断是否需要生成解读')">核验异动</button><button onclick="setSceneComposer('修改阈值','把中际旭创的快速拉升阈值改为 4%')">修改阈值</button><button onclick="setSceneComposer('新增自选','新增一只自选个股并设置监测条件')">＋ 新增自选</button></div></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="alertPage">
+        <div class="conversation">
+          <div class="card signal danger"><div class="signal-icon">!</div><div class="signal-copy"><span class="label red-label">强烈建议解读</span><h3>上周五费城半导体指数下跌 4.25%</h3><p>存储与云计算方向波动明显，可能影响今日 A 股半导体、AI 算力方向的客户情绪。</p></div><div class="signal-data"><strong class="loss">-4.25%</strong><span>隔夜核心产业异动</span></div></div>
+          <div class="thread">
+            <div class="message"><div class="msg-avatar" aria-label="内容创作助手"></div><div class="bubble"><div class="msg-meta"><strong>内容创作助手</strong><time>07:18</time></div><p>我发现一条需要优先回应的重大事件。已核验隔夜行情、海外科技股表现和初步原因，并匹配到半导体与 AI 主线。建议生成一篇事件解读，先回答客户最关心的“今天怎么办”。</p><div class="chips"><span>行情数据 ✓</span><span>官方来源 3</span><span>相关研报 5</span><span>历史观点 4</span></div></div></div>
+            <div class="message user-msg"><div class="bubble"><div class="msg-meta"><strong>你</strong><time>07:20</time></div><p>生成一篇微信群素材，解读事件，安抚客户。</p></div></div>
+            <div class="message"><div class="msg-avatar" aria-label="内容创作助手"></div><div class="bubble draft-bubble"><div class="msg-meta"><strong>内容创作助手</strong><span class="ready">微信群素材已生成</span><time>07:22</time></div>
+              <textarea id="alertGroupDraft">🟢 费城半导体指数下跌 4.25%，今天 A 股半导体怎么看？
+
+家人们，大家当前更关心的可能是：今天半导体要不要先跑？
+
+上周五费城半导体指数下跌 4.25%，纳斯达克下跌 0.64%，存储与云计算方向跌幅更大。短期会影响今天开盘的风险偏好，这个担心很正常。
+
+💬 先说观点：一天的大跌会影响情绪，但还不足以直接推翻产业趋势。韩国市场同时存在杠杆资金出清，而产业端仍有存储、AI 硬件合作与订单线索。短期资金冲击和中期需求，要分开看。
+
+👉 对 A 股来说，设备、存储和算力链可能先受到情绪传导。已有配置的伙伴，不急着在情绪最差的时候做决定；没有配置的伙伴，也别急着抢反弹。今天更适合看收盘，不要因为开盘波动就改变原有计划。
+
+📌 接下来重点验证长鑫上市后的板块反馈、日韩半导体走势，以及本周 AI 巨头财报中的资本开支指引。如果订单和资本开支预期没有下修，这更偏短期波动；如果连续出现业绩与指引下修，才需要重新评估。</textarea>
+              <div class="chips checks"><span>✓ 事实时点</span><span>✓ 产业影响</span><span>✓ 短中期区分</span><span>✓ 失效条件</span></div>
+              <div class="actions"><button onclick="toast('已重新生成微信群素材')">↻ 重新生成</button><button onclick="openChannel('video','alert')">一键转换短视频脚本</button><button onclick="openChannel('circle','alert')">一键转换财富圈长文</button></div>
+              <div class="creative-kit"><div class="creative-head"><span class="creative-badge">AI</span><span><strong>AI 创作包</strong><small>复制正文与制作 Prompt 到其他平台</small></span></div><div class="creative-actions"><button onclick="openCreativePrompt('video','alertGroupDraft','重大事件微信群素材')">▶ 短视频制作 Prompt</button><button onclick="openCreativePrompt('image','alertGroupDraft','重大事件微信群素材')">◇ 图片制作 Prompt</button></div></div>
+              <div class="delivery-row"><button class="copy-action" onclick="copyTextById('alertGroupDraft')">一键复制</button><details class="group-picker"><summary>发布至交易1群 ▾</summary><div class="group-menu"><label><input type="checkbox" value="交易1群" checked>交易1群</label><label><input type="checkbox" value="交易2群">交易2群</label><label><input type="checkbox" value="交易3群">交易3群</label><button onclick="sendSelected(this,'交易')">确认发布</button></div></details></div>
+            </div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="industryPage">
+        <div class="conversation">
+          <div class="card signal danger"><div class="signal-icon">3</div><div class="signal-copy"><span class="label red-label">自选行业 · 新增重要信息</span><h3>三条产业增量需要集中解读</h3><p>覆盖半导体 / 存储、AI 算力与电网设备；事实层已拆分为“已发生、前瞻口径与待验证项”。</p></div><div class="signal-data"><strong>3 条</strong><span>已完成事实核验</span></div></div>
+          <div class="intel-grid">
+            <article class="card intel-card">
+              <div class="intel-top"><span><small>01 · 核心关注</small><strong>半导体 / 存储</strong></span><b class="stars">★★★</b></div>
+              <div class="fact-list">
+                <div class="fact"><i>1</i><span><b>长鑫科技今日上市。</b>股票代码 688825，发行价 8.66 元，发行前提下募集资金约 579.19 亿元，国产 DRAM 龙头正式进入科创板交易。</span></div>
+                <div class="fact"><i>2</i><span><b>韩国企业公布五年期合作框架。</b>韩国总统府披露总规模约 9500 亿美元，其中三星与博通签署约 2000 亿美元合作谅解备忘录，SK 将推进约 7500 亿美元长期合作。</span></div>
+                <div class="fact"><i>3</i><span><b>DRAM价格仍处上行区间。</b>TrendForce 7 月 27 日数据显示，DDR4 16Gb 3200 现货均价单日上涨 1.52%；部分产品持平，交易活跃度仍需持续观察。</span></div>
+              </div>
+              <div class="neutral-note">证据边界：9500 亿美元是合作框架及谅解备忘录口径，不等同于已确认收入；长鑫上市初期存在流通盘较小与价格波动风险。</div>
+              <div class="evidence-row"><a href="https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12460381&stockid=688825" target="_blank">上市公告书 ↗</a><a href="https://m-cn.yna.co.kr/view/ACK20260726000200881" target="_blank">韩国总统府口径 ↗</a><a href="https://www.trendforce.com/price/dram/dram_spot" target="_blank">TrendForce ↗</a></div>
+            </article>
+            <article class="card intel-card">
+              <div class="intel-top"><span><small>02 · 资本开支验证</small><strong>AI 算力</strong></span><b class="stars">★★★</b></div>
+              <div class="fact-list">
+                <div class="fact"><i>1</i><span><b>Alphabet 继续上调基础设施投入。</b>公司最新口径预计 2026 年资本开支 1800—1900 亿美元，2025 年为 914 亿美元，投入重点仍是服务器、数据中心和网络。</span></div>
+                <div class="fact"><i>2</i><span><b>韩国 AI 基础设施同步扩张。</b>相关合作规划建设约 5GW 算力基础设施并部署约 200 万个 GPU，SKT、英伟达、Anthropic 等参与不同项目。</span></div>
+                <div class="fact"><i>3</i><span><b>产业需求仍需财报验证。</b>资本开支计划支持服务器、GPU、光通信和存储需求，但实际订单节奏、交付能力与投入回报仍要看本周科技公司财报和后续指引。</span></div>
+              </div>
+              <div class="neutral-note">证据边界：资本开支是公司计划，不代表全部转化为当期芯片收入；供应约束、组件价格和付款时点可能改变实际支出。</div>
+              <div class="evidence-row"><a href="https://blog.google/alphabet/investor-presentation-june-2026/" target="_blank">Alphabet IR ↗</a><a href="https://m-cn.yna.co.kr/view/ACK20260726000200881" target="_blank">AI峰会合作框架 ↗</a><span>待财报验证</span></div>
+            </article>
+            <article class="card intel-card">
+              <div class="intel-top"><span><small>03 · 国家资本开支</small><strong>电网设备</strong></span><b class="stars">★★</b></div>
+              <div class="fact-list">
+                <div class="fact"><i>1</i><span><b>“十五五”全国电网投资预计超过 5 万亿元。</b>中电联报告口径显示，较“十四五”同期增长超过 80%，重点投向输电通道、骨干网、配电网和数智化改造。</span></div>
+                <div class="fact"><i>2</i><span><b>国家电网上半年投资继续增长。</b>2026 年上半年完成固定资产投资超过 3100 亿元，同比增长 12.6%，多项特高压和配网工程推进。</span></div>
+                <div class="fact"><i>3</i><span><b>增长来源相对独立。</b>该方向主要由国家电网建设、新能源并网和跨区输电需求驱动，同时算力用电增长带来新增基础设施需求。</span></div>
+              </div>
+              <div class="neutral-note">证据边界：5 万亿元为全国电网固定资产投资预测口径，国家电网自身“十五五”计划为 4 万亿元，两者不可混用。</div>
+              <div class="evidence-row"><a href="https://www.nea.gov.cn/20260717/6ba0fac6398740758e0f0de19ef8d27e/c.html" target="_blank">国家能源局 ↗</a><a href="https://www1.xinhuanet.com/20260724/c0abd56b767b4b6a89f9478c6fabf446/c.html" target="_blank">国家电网上半年数据 ↗</a><span>中电联年度报告</span></div>
+            </article>
+          </div>
+          <div class="thread">
+            <div class="message"><div class="msg-avatar" aria-label="内容创作助手"></div><div class="bubble"><div class="msg-meta"><strong>内容创作助手</strong><time>07:17</time></div><p>自选行业出现 3 条新增重要信息：长鑫上市与存储合作框架、AI 资本开支扩张、电网投资加速。事实层已完成核验，建议进一步解释海外产业信号如何传导至 A 股，以及三个方向的关注顺序。</p><div class="chips"><span>原始公告 2</span><span>公司口径 2</span><span>行业价格 1</span><span>政策数据 2</span></div></div></div>
+            <div class="message user-msg"><div class="bubble"><div class="msg-meta"><strong>你</strong><time>07:19</time></div><p>生成半导体行业异动解读，说明海外传导和 A 股应对节奏。</p></div></div>
+            <div class="message"><div class="msg-avatar" aria-label="内容创作助手"></div><div class="bubble draft-bubble"><div class="msg-meta"><strong>内容创作助手</strong><span class="ready">行业素材已生成</span><time>07:21</time></div>
+              <textarea id="industryDraft">🔥【行业异动解读】长鑫上市、AI资本开支与电网投资，三条线怎么理解？
+
+家人们，今天产业信息很多，但不是一回事。郭郭把它们分成三条线：半导体 / 存储看产业景气和国产替代，AI 算力看全球资本开支，电网设备看国内国家资本开支。
+
+一、半导体 / 存储：产业增量最集中，但上市首日波动也会最大
+
+长鑫科技今天正式登陆科创板，股票代码 688825，发行价 8.66 元，募集资金约 579.19 亿元。它的意义不是“今天一定涨多少”，而是 A 股第一次有了更直接的国产 DRAM 龙头定价锚，存储、设备、材料和封测都可能重新找到参照。
+
+海外也有新增。韩国总统府披露，韩国企业与全球科技公司推进总规模约 9500 亿美元、期限五年的半导体合作：三星与博通签署约 2000 亿美元合作谅解备忘录，SK 将推进约 7500 亿美元的长期合作。这里要说清楚——这是合作框架和 MOU，不是已经全部确认收入，但它至少说明全球科技公司仍在围绕高端存储、AI 芯片和晶圆代工安排长期产能。
+
+价格端也有验证。TrendForce 7 月 27 日数据显示，DDR4 16Gb 3200 现货均价单日上涨 1.52%，部分 DRAM 产品持平。价格没有全面转弱，但成交活跃度仍需观察，所以不能只看一个价格就下结论。
+
+海外市场的大跌会先影响 A 股情绪，这一点不回避。但 SOX、韩国市场下跌和产业订单是两个时间尺度。指数跌幅说明短期资金在降风险，合作框架、资本开支和 DRAM 价格则验证中期需求。仅凭一天的市场表现，还不能认定产业景气反转。
+
+操作上：有持仓的伙伴不需要因为开盘情绪慌着处理；没持仓的伙伴也别抢长鑫上市首日的情绪。关注顺序上，先看存储，再看半导体设备，最后看先进封装。验证信号是长鑫上市后的板块反馈、DRAM价格和海外合作是否转成可执行合同。
+
+二、AI 算力：资本开支没有停，但本周财报要检验投入强度
+
+Alphabet 最新预计 2026 年资本开支为 1800—1900 亿美元，2025 年是 914 亿美元，接近翻倍。公司明确说，大部分投入继续用于服务器、数据中心和网络基础设施。
+
+韩国 AI 峰会披露的合作还包括约 5GW 算力基础设施和约 200 万个 GPU 的部署规划。对产业链来说，服务器、GPU、光通信、高端存储和供电配套都有需求映射。
+
+但郭郭也提醒一句：资本开支计划不等于当期业绩。组件价格、供应能力、付款节奏都会影响实际落地。本周 AI 巨头财报里，最值得看的不是一句“继续看好 AI”，而是资本开支有没有继续上调、云业务订单有没有增长、投入回报有没有改善。
+
+操作上：AI 算力仍然是回踩关注，不追高。上周 A 股通信和算力方向的下跌更像短期资金轮动，是否影响中期逻辑，要用本周财报和订单验证。没有看到资本开支下修之前，不轻易把短期波动写成产业反转。
+
+三、电网设备：国家资本开支驱动，逻辑和科技估值波动不完全相同
+
+中电联报告预计，“十五五”全国电网固定资产投资达到 5 万亿元以上，较“十四五”同期增长超过 80%。国家电网自身的“十五五”固定资产投资计划是 4 万亿元，这两个口径不要混在一起。
+
+2026 年上半年，国家电网完成固定资产投资超过 3100 亿元，同比增长 12.6%。特高压、骨干网、配电网和数智化改造都在推进。这个方向的核心驱动力是国内基础设施投资、新能源并网和跨区输电，和海外科技股涨跌没有直接绑定。
+
+同时，AI 算力扩张会增加数据中心用电，对电网建设形成新的需求增量。但这条关系是中长期的，不能因为算力需求增长，就把所有电网设备公司都直接等同于 AI 受益。
+
+操作上：电网设备逻辑比较扎实，但如果短期已经明显上涨，今天也不适合追。等回调后，再看订单、招标和交付节奏。
+
+⭐ 郭郭总结
+
+三条线的优先级不同：
+1. 半导体 / 存储：新增信息最密集，重点看长鑫上市、DRAM价格和合作落地。
+2. AI 算力：全球资本开支仍强，本周财报是关键验证。
+3. 电网设备：国家资本开支提供独立增量，适合等回调，不追短期涨幅。
+
+一句话：产业信息在强化，但今天不是看到利好就上头。已有持仓不慌，新增关注等波动消化，按“存储 > 半导体设备 > 先进封装”的顺序观察；AI算力看财报，电网设备看订单。</textarea>
+              <div class="chips checks"><span>✓ 三条产业增量</span><span>✓ 海外传导</span><span>✓ A股映射</span><span>✓ 证据边界</span><span>✓ 应对节奏</span></div>
+              <div class="actions"><button onclick="toast('已重新生成行业解读')">↻ 重新生成</button><button onclick="openChannel('group','industry')">转换微信群素材</button><button onclick="openChannel('video','industry')">转换短视频脚本</button><button class="dark" onclick="openChannel('circle','industry')">转换财富圈长文</button></div>
+              <div class="creative-kit"><div class="creative-head"><span class="creative-badge">AI</span><span><strong>AI 创作包</strong><small>复制正文与制作 Prompt 到其他平台</small></span></div><div class="creative-actions"><button onclick="openCreativePrompt('video','industryDraft','行业异动解读')">▶ 短视频制作 Prompt</button><button onclick="openCreativePrompt('image','industryDraft','行业异动解读')">◇ 图片制作 Prompt</button></div></div>
+              <div class="delivery-row"><button class="copy-action" onclick="copyTextById('industryDraft')">一键复制</button><button class="send-action" onclick="preparePublish('财富圈','industryDraft')">去发布</button></div>
+            </div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="commissionPage">
+        <div class="commission-wrap">
+          <div id="commissionIntake">
+            <div class="card signal danger"><div class="signal-icon">稿</div><div class="signal-copy"><span class="label red-label">平台约稿 · 待处理</span><h3>黄金市场震荡，生产一篇深度解读</h3><p>系统派发稿件任务，可认领、转派或拒绝；认领前需完成专业、合规与产能匹配。</p></div><div class="signal-data"><strong>1 单</strong><span>今日 17:30 前交付</span></div></div>
+            <div class="card commission-ticket" style="margin-top:14px">
+              <div class="commission-ticket-head">
+                <div class="commission-ticket-title"><span>平台编辑中心约稿</span><h3>黄金后市怎么看？</h3><p>围绕近期黄金高波动，解释美联储、实际利率、美元、资金流与中期配置逻辑，形成一篇可发布的深度图文。</p></div>
+                <div class="commission-ticket-no"><strong>约稿单 #PG-0728-016</strong><small>派发时间 09:42</small></div>
+              </div>
+              <div class="commission-meta">
+                <div><span>交付时间</span><strong>今日 17:30</strong></div>
+                <div><span>建议字数</span><strong>1,600—2,200 字</strong></div>
+                <div><span>发布形式</span><strong>财富圈深度图文</strong></div>
+                <div><span>任务优先级</span><strong style="color:#dc454b">高</strong></div>
+              </div>
+              <div class="commission-requirements"><strong>任务要求：</strong>使用截至 2026 年 7 月 28 日可核验信息；区分已发生事实、机构情景分析与个人判断；不得把地缘冲突简单等同于黄金上涨；不得使用确定性涨跌预测或收益承诺。</div>
+              <div class="commission-actions"><button class="reject" onclick="rejectCommission()">拒绝</button><button onclick="transferCommission()">转派</button><button class="accept" onclick="acceptCommission()">认领约稿</button></div>
+            </div>
+          </div>
+
+          <div id="commissionBriefing" style="display:none">
+            <div class="card commission-agent-card">
+              <div class="thread">
+                <div class="message"><div class="msg-avatar"></div><div class="bubble"><div class="msg-meta"><strong>约稿小助手</strong><span class="ready">已受理</span><time>09:44</time></div><p>约稿单已认领。我已完成专业、合规和产能匹配，可以帮你采集证据并生成初稿。为避免稿件方向跑偏，请先确认下面四项要求。</p><div class="commission-status"><span>专业匹配：黄金 / 大类资产</span><span>合规检查：可承接</span><span>预计产能：32 分钟</span></div></div></div>
+              </div>
+            </div>
+            <div class="card commission-form">
+              <h3>确认本次稿件方向</h3><p>以下选项会进入生成任务卡，生成后仍可在正文中继续修改。</p>
+              <div class="commission-question"><label>1. 对黄金的整体判断</label><div class="commission-options">
+                <label class="commission-option"><input type="radio" name="goldStance" value="看好"><span>看好</span></label>
+                <label class="commission-option"><input type="radio" name="goldStance" value="中性" checked><span>中性</span></label>
+                <label class="commission-option"><input type="radio" name="goldStance" value="看空"><span>看空</span></label>
+              </div></div>
+              <div class="commission-question"><label>2. 使用哪些分析逻辑（可多选）</label><div class="commission-options">
+                <label class="commission-option"><input type="checkbox" name="goldLogic" value="美联储与实际利率" checked><span>美联储与实际利率</span></label>
+                <label class="commission-option"><input type="checkbox" name="goldLogic" value="油价与通胀传导" checked><span>油价与通胀传导</span></label>
+                <label class="commission-option"><input type="checkbox" name="goldLogic" value="美元与美债收益率" checked><span>美元与美债收益率</span></label>
+                <label class="commission-option"><input type="checkbox" name="goldLogic" value="黄金ETF资金流" checked><span>黄金 ETF 资金流</span></label>
+                <label class="commission-option"><input type="checkbox" name="goldLogic" value="央行购金与配置需求" checked><span>央行购金与配置需求</span></label>
+              </div></div>
+              <div class="commission-question"><label>3. 目标字数</label><div class="commission-options">
+                <label class="commission-option"><input type="radio" name="goldLength" value="1200"><span>约 1,200 字</span></label>
+                <label class="commission-option"><input type="radio" name="goldLength" value="1800" checked><span>约 1,800 字</span></label>
+                <label class="commission-option"><input type="radio" name="goldLength" value="2400"><span>约 2,400 字</span></label>
+              </div></div>
+              <div class="commission-question"><label for="commissionOther">4. 其他要求</label><textarea id="commissionOther" placeholder="例如：配置观点更克制，不写具体产品；重点回答已有黄金仓位和准备新增配置的人分别怎么做。"></textarea></div>
+              <div class="commission-submit"><button onclick="generateCommissionDraft()">用我的风格生成稿件</button></div>
+            </div>
+          </div>
+
+          <div id="commissionResult" style="display:none">
+            <div class="card commission-agent-card">
+              <div class="thread">
+                <div class="message user-msg"><div class="bubble"><div class="msg-meta"><strong>你</strong><time>09:47</time></div><p id="commissionUserSummary">中性判断；使用全部分析逻辑；约 1,800 字；用我的风格生成稿件。</p></div></div>
+                <div class="message"><div class="msg-avatar"></div><div class="bubble draft-bubble commission-draft"><div class="msg-meta"><strong>约稿小助手</strong><span class="ready">图文初稿已生成</span><time>09:49</time></div>
+                  <textarea id="commissionDraft">黄金后市怎么看？
+
+先说结论：我对黄金的判断是短期中性、配置逻辑仍在。现在金价最容易被两个方向同时拉扯——一边是美联储、实际利率和美元带来的机会成本，另一边是地缘风险、央行购金和资产分散需求。这个阶段不适合只看“避险”两个字，也不适合把几天调整理解成长期逻辑结束。
+
+1、短期最重要的变量，是美联储怎么回应通胀
+
+美联储 7 月议息会议在 7 月 28—29 日举行。6 月会议把联邦基金利率目标区间维持在 3.50%—3.75%，会议纪要同时强调通胀仍高于 2% 目标，而且能源和其他供给冲击增加了价格压力。
+
+黄金本身不付利息。当市场预期利率维持更久、实际利率抬升、美元偏强时，持有黄金的机会成本就会上升，短期价格自然容易反复。
+
+所以现在判断黄金，不能只问美联储会不会加息，还要看会议之后美元和美债收益率怎么走。如果利率不变，但市场认为后续政策更偏紧，黄金仍可能承压；如果对通胀的担忧缓和、实际利率和美元同步回落，黄金的压力才会真正减轻。
+
+2、地缘风险对黄金不是单向利好
+
+很多人看到中东局势，第一反应就是黄金应该涨。但实际交易没有这么简单。
+
+地缘升级确实会增加避险需求；可如果它同时推高油价和通胀预期，市场就会重新讨论更高利率，美元和美债收益率也可能走强。这样一来，避险需求和持有成本会同时拉扯黄金。
+
+6 月美联储会议纪要已经记录了这条传导：市场对美伊局势缓和的预期曾压低油价曲线和短期通胀补偿，但同期政策利率预期、美国国债收益率和美元仍然上行。这个细节说明，最近黄金面对的不是一条线，而是多条宏观变量一起变化。
+
+因此，后面若地缘消息反复，不要只看油价涨没涨，还要同时观察美元、实际利率和黄金本身的反应。
+
+3、资金在减仓，但不是所有长期资金都离开了
+
+世界黄金协会数据显示，6 月全球实物黄金 ETF 净流出 89 亿美元，其中北美流出 55 亿美元、亚洲流出 23 亿美元。前期涨幅较大、金价快速回落，再叠加偏鹰的利率预期，确实推动了一部分资金获利了结。
+
+但把时间拉长，上半年全球黄金 ETF 仍然净流入 80 亿美元，持仓增加 18 吨至 4,047 吨。也就是说，6 月是明显减仓，但上半年整体还不是全面撤退。
+
+这组数据很重要：短线资金在重新控制风险，长期配置资金并没有用同样的速度离开。后续如果 ETF 继续流出、美元和实际利率又同步走高，黄金可能还需要消化；如果资金流先企稳，价格的下行压力也会减轻。
+
+4、中期配置逻辑还在，但不等于现在要追
+
+世界黄金协会披露，5 月全球央行净购金约 41 吨；其 2026 年调查中，89% 的受访央行预计未来 12 个月全球黄金储备会继续增加。央行购金、美国财政与货币信用、资产分散和地缘不确定性，仍然构成黄金的中期配置基础。
+
+但中期逻辑还在，不代表短期每一次回落都要马上加仓。黄金经历了高波动，上半年投资者情绪、获利了结和宏观预期的变化都很剧烈，价格仍需要时间寻找新的平衡。
+
+我的建议分两种情况：
+
+如果黄金本来就是资产配置的一部分，可以继续保留与自身风险承受能力匹配的比例，不因为几天波动全部卖掉，也不因为一条地缘消息突然加满。
+
+如果准备新增配置，当前更适合分批、等待验证。先看 7 月美联储会议后的实际利率和美元，再看黄金 ETF 资金流能否企稳。不会做短线的伙伴，就不要在高波动里频繁追涨杀跌。
+
+接下来重点看三件事：
+
+第一，美联储会议后，实际利率和美元是继续上行，还是出现缓和；
+第二，油价变化是否继续推高通胀预期；
+第三，黄金 ETF 流出是否收窄，央行购金能否延续。
+
+总结一句话：黄金短期还在等待宏观变量给方向，中期配置价值没有消失。已有配置不必因为波动全部离场，新增配置也不着急一次做满。先看利率和美元，再看资金流，给自己留出应对空间。
+
+风险提示：以上内容基于公开信息整理，仅作市场交流，不构成投资建议。黄金价格受利率、汇率、地缘事件和资金流等多重因素影响，历史表现不代表未来。</textarea>
+                  <div class="commission-sources"><a href="https://www.federalreserve.gov/newsevents/2026-july.htm" target="_blank">美联储 7 月日历</a><a href="https://www.federalreserve.gov/monetarypolicy/fomcminutes20260617.htm" target="_blank">美联储 6 月会议纪要</a><a href="https://www.gold.org/goldhub/research/gold-etfs-holdings-and-flows/2026/07" target="_blank">世界黄金协会 ETF 流量</a><a href="https://www.gold.org/goldhub/research/gold-mid-year-outlook-2026" target="_blank">黄金年中展望</a><a href="https://www.gold.org/goldhub/gold-focus/2026/07/central-bank-gold-statistics-central-banks-remain-committed-gold" target="_blank">央行购金数据</a></div>
+                  <div class="chips checks"><span>事实时点已核验</span><span>观点与事实已区分</span><span>无收益承诺</span><span>风险提示已保留</span></div>
+                  <div class="commission-asset-row"><div class="commission-asset"><strong>图文定稿</strong><small>标题、正文、来源与风险提示</small></div><div class="commission-asset"><strong>封面制作 Prompt</strong><small>可带到图片平台继续制作</small></div><div class="commission-asset"><strong>稿件资产记录</strong><small>保留任务单、版本与复核状态</small></div></div>
+                  <div class="actions"><button onclick="toast('已生成一版更克制的表达')">表达更克制</button><button onclick="toast('已压缩到约 1,200 字')">压缩篇幅</button><button onclick="openCreativePrompt('image','commissionDraft','黄金市场深度解读')">生成封面 Prompt</button><button class="dark" onclick="finalizeCommission()">形成定稿资产</button></div>
+                  <div class="delivery-row"><button class="copy-action" onclick="copyTextById('commissionDraft')">一键复制</button><button class="send-action" onclick="preparePublish('财富圈','commissionDraft')">去发布</button></div>
+                </div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="portfolioPage">
+        <div class="conversation">
+          <div class="card signal portfolio"><div class="signal-icon">↘</div><div class="signal-copy"><span class="label">组合异动 · 建议陪伴</span><h3>纳斯达克下跌 0.64%，费半下跌 4.25%</h3><p>“钰你同行”相关暴露约 22.8%，预计对组合净值形成短期扰动，建议在开盘前主动说明。</p></div><div class="signal-data"><strong class="loss">约 -0.22%</strong><span>单日净值影响估算</span></div></div>
+          <div class="card metrics"><div class="metric"><span>相关暴露</span><strong>22.8%</strong><small>半导体 14.2% · 海外科技 8.6%</small></div><div class="metric"><span>年化收益</span><strong class="gain">7.8%</strong><small>组合成立以来年化</small></div><div class="metric"><span>最大回撤</span><strong class="loss">-3.12%</strong><small>仍处于预设波动区间</small></div><div class="metric"><span>建议动作</span><strong class="green">主动陪伴</strong><small>暂不触发调仓提示</small></div></div>
+          <div class="thread">
+            <div class="message"><div class="msg-avatar group" aria-label="组合陪伴助手"></div><div class="bubble"><div class="msg-meta"><strong>组合陪伴助手</strong><time>07:19</time></div><p>我已根据隔夜纳斯达克、费城半导体指数波动，以及组合相关持仓暴露完成影响估算。当前不触发调仓规则，但客户可能明显感知科技资产波动，建议发送一条主动陪伴。</p><div class="impact"><span>半导体相关仓位 <b>-0.16%</b></span><span>海外科技仓位 <b>-0.06%</b></span></div></div></div>
+            <div class="message"><div class="msg-avatar group" aria-label="组合陪伴助手"></div><div class="bubble draft-bubble"><div class="msg-meta"><strong>组合陪伴助手</strong><span class="ready">陪伴文案已生成</span><time>07:21</time></div>
+              <textarea id="portfolioDraft">上周五海外科技市场波动较大，纳斯达克指数下跌 0.64%，费城半导体指数下跌 4.25%。按当前持仓与历史敏感度估算，对“钰你同行”单日净值的影响约为 -0.22%，主要来自半导体与海外科技相关仓位。
+
+这类波动难免让人焦虑，但“钰你同行”是大类资产配置组合，并不是单一押注科技方向。当前影响仍在预设波动范围内，我们会继续跟踪今天 A 股科技方向的反馈，以及本周海外科技公司财报对产业趋势的验证。
+
+已有定投计划的伙伴，今天不需要因为一个晚上的波动临时改变节奏。若后续出现更明确的基本面变化，我们会第一时间说明组合应对。</textarea>
+              <div class="actions"><button onclick="toast('已切换为更温和的语气')">语气更温和</button><button onclick="toast('已插入审批通过的服务话术')">＋ 插入服务话术</button><button onclick="openChannel('direct','portfolio')">一对一消息预览</button><button class="dark" onclick="openChannel('group','portfolio')">社群版本预览</button></div>
+              <div class="delivery-row"><button class="copy-action" onclick="copyTextById('portfolioDraft')">一键复制</button><details class="group-picker"><summary>发布至配置1群 ▾</summary><div class="group-menu"><label><input type="checkbox" value="配置1群" checked>配置1群</label><label><input type="checkbox" value="配置2群">配置2群</label><label><input type="checkbox" value="配置3群">配置3群</label><button onclick="sendSelected(this,'配置')">确认发布</button></div></details></div>
+              <div class="estimate">影响值为盘前估算，正式净值以收盘后组合数据为准。</div>
+            </div></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="uc-wrap uc-floating">
+        <div class="uc-examples" id="composerExamples"><button class="uc-example" onclick="setComposerExample('composerInput','查看当前运行进度')">查看运行进度</button><button class="uc-example" onclick="setComposerExample('composerInput','调整早盘策略的生成重点')">调整生成重点</button><button class="uc-example" onclick="setComposerExample('composerInput','完成后提醒我复核')">完成后提醒</button></div>
+        <div class="composer unified-composer">
+          <div class="uc-input-row"><button class="uc-plus" onclick="toast('可上传文件或引用素材')">＋</button><input class="uc-input" id="composerInput" placeholder="想调整早盘策略的素材、观点或输出？和我说就行！" onkeydown="if(event.key==='Enter')sendMessage()"></div>
+          <div class="uc-toolbar"><div class="uc-toolbar-left"><span class="uc-context">内容创作助手</span></div><div class="uc-toolbar-right"><div class="model-picker"><button class="uc-model" aria-label="切换模型"><span class="uc-model-icon">D</span><span class="uc-model-label">Deepseek-V4-Pro</span><span class="uc-model-caret">⌄</span></button></div><button class="uc-send" onclick="sendMessage()" aria-label="发送"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22 11 13 2 9 22 2z"/></svg></button></div></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <div class="channel-modal" id="channelModal" onclick="if(event.target===this)closeChannel()">
+    <div class="channel-sheet">
+      <div class="channel-sheet-head"><span><small id="channelSource">基于已复核内容创作</small><strong id="channelTitle">微信群版本</strong></span><button onclick="closeChannel()">×</button></div>
+      <div class="channel-summary"><span id="channelLength">约 320 字</span><span id="channelStructure">3 段可分发</span><span>可继续编辑</span></div>
+      <textarea class="channel-output" id="channelOutput"></textarea>
+      <div class="modal-creative" id="modalCreative"><span><strong>AI 创作包</strong><small>基于当前渠道稿生成可复用制作 Prompt</small></span><div><button onclick="openCreativePrompt('video','channelOutput','当前渠道稿')">▶ 视频制作 Prompt</button><button onclick="openCreativePrompt('image','channelOutput','当前渠道稿')">◇ 图片制作 Prompt</button></div></div>
+      <div class="channel-sheet-foot"><span id="channelFootNote">生成结果需人工确认后发布</span><div><button id="channelRegenerateBtn" onclick="regenerateChannel()">重新生成</button><button class="copy-btn" onclick="copyChannel()">一键复制</button><button class="publish-btn" id="channelPublishBtn" onclick="publishCurrent()">去发布</button></div></div>
+    </div>
+  </div>
+  <div class="channel-modal" id="publishModal" onclick="if(event.target===this)closePublish()">
+    <div class="channel-sheet" style="width:min(520px,100%)">
+      <div class="channel-sheet-head"><span><small>发布确认</small><strong id="publishTitle">选择发布位置</strong></span><button onclick="closePublish()">×</button></div>
+      <div class="publish-confirm"><p id="publishDescription">内容已完成生成与复核，请选择发布位置。</p><div class="destination-list" id="publishDestinations"></div><div class="publish-note">发布前检查：已保留数据时点、风险边界和人工复核记录。点击确认后，本 Demo 将展示发布完成状态。</div></div>
+      <div class="channel-sheet-foot"><span id="publishWordCount">内容已就绪</span><div><button onclick="closePublish()">返回修改</button><button class="publish-btn" onclick="confirmPublish()">确认发布</button></div></div>
+    </div>
+  </div>
+  <div class="toast" id="toast"><b>✓</b><span id="toastText"></span></div>
+
+  <script>
+    const lists={
+      daily:[
+        ["早盘策略","正在执行","run","strategy"],
+        ["重要事件点评","正在执行","run","event"],
+        ["早盘风向标","已设置 07:45 自动执行","scheduled","morningSignal"],
+        ["极简复盘","已设置 15:45 自动执行","scheduled","recap"],
+        ["行业深度","随时可执行","","industryDepth"]
+      ],
+      alert:[
+        ["大盘","监测中 · 暂无触发","",0,"market"],["自选行业","3 条新增重要信息","",3,"industry"],["自选个股","3 只个股波动待确认","",0,"stocks"],["重大事件","建议立即解读","",1,"major"]
+      ],
+      portfolio:[
+        ["组合异动","隔夜科技波动待沟通","selected",1,"portfolioAlert"],["组合日报","已设置 16:30 自动执行","",0,"portfolioDaily"],["组合周报","每周五 17:00 自动执行","",0,"portfolioWeekly"],["日常陪伴","定投建议 · 持仓说明","",0,"portfolioCare"]
+      ],
+      commission:[
+        ["黄金市场震荡","待认领 · 今日 17:30","",1,"gold"]
+      ]
+    };
+    let currentDailyTask="strategy";
+    let currentAlertTask="industry";
+    let currentPortfolioTask="portfolioAlert";
+    let currentCommissionTask="gold";
+    let industryDepthRunning=false;
+    let currentMode="daily";
+    let currentChannel={type:"group",source:"strategy"};
+
+    function taskGlyph(mode,key,hasAlert){
+      const icons={
+        market:`<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 19V9m5 10V5m5 14v-7m5 7V3"></path></svg>`,
+        industry:`<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1.5" stroke-width="1.8"></rect><rect x="14" y="3.5" width="6.5" height="6.5" rx="1.5" stroke-width="1.8"></rect><rect x="3.5" y="14" width="6.5" height="6.5" rx="1.5" stroke-width="1.8"></rect><rect x="14" y="14" width="6.5" height="6.5" rx="1.5" stroke-width="1.8"></rect></svg>`,
+        stocks:`<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 17l5-5 4 3 7-8"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14 7h5v5"></path></svg>`,
+        major:`<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v3.5m0 3.5h.01M10.3 4.9 3.5 17a2 2 0 0 0 1.75 3h13.5a2 2 0 0 0 1.75-3L13.7 4.9a2 2 0 0 0-3.4 0z"></path></svg>`,
+        portfolioAlert:`<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 6h6v6"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m3 12 6-6 5 5 7-7"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 14h4v6h-4zM10 16h4v4h-4zM3 15h4v5H3z"></path></svg>`,
+        portfolioDaily:`<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 3.5h7l4 4V20.5H7z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14 3.5v4h4M10 12h5M10 15.5h5"></path></svg>`,
+        portfolioWeekly:`<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="15" rx="2" stroke-width="1.8"></rect><path stroke-linecap="round" stroke-width="1.8" d="M7.5 3.5v4M16.5 3.5v4M3.5 10h17M8 14h2m4 0h2m-8 3h2m4 0h2"></path></svg>`,
+        portfolioCare:`<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 11.5a7.5 7.5 0 0 1-8 7.5c-1.35 0-2.61-.34-3.7-.94L4 20l1.35-3.72A7.5 7.5 0 1 1 20 11.5z"></path><path stroke-linecap="round" stroke-width="1.8" d="M8.5 11.5h7M12 8v7"></path></svg>`,
+        gold:`<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 3.5h7l4 4V20.5H7z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14 3.5v4h4M9.5 16.5l5.8-5.8 1.7 1.7-5.8 5.8-2.2.5z"></path></svg>`
+      };
+      const modeClass=mode==="portfolio"?"portfolio":(mode==="commission"?"commission":"");
+      const urgentClass=(key==="major"||key==="portfolioAlert")?"urgent":"";
+      return `<span class="task-glyph ${modeClass} ${urgentClass} ${hasAlert?"has-alert":""}" aria-hidden="true">${icons[key]||icons.portfolioDaily}</span>`;
+    }
+    function renderTasks(mode){
+      const wrap=document.getElementById("taskList");
+      let html="";
+      if(mode==="portfolio")html='<div class="portfolio-card"><div><span>已关注组合</span><button onclick="toast(\'已打开组合选择\')">切换</button></div><strong>钰你同行</strong><small>大类资产配置组合</small></div>';
+      lists[mode].forEach((item,index)=>{
+        const isDailySelected=mode==="daily"&&item[3]===currentDailyTask;
+        const isAlertSelected=mode==="alert"&&item[4]===currentAlertTask;
+        const isPortfolioSelected=mode==="portfolio"&&item[4]===currentPortfolioTask;
+        const isCommissionSelected=mode==="commission"&&item[4]===currentCommissionTask;
+        const selected=isDailySelected?"selected":(isAlertSelected||isCommissionSelected||isPortfolioSelected?"alert-selected":(mode!=="daily"?item[2]:""));
+        const isIndustryLauncher=mode==="daily"&&item[3]==="industryDepth";
+        const notificationId=`${mode}-${item[4]||index}`;
+        const hasAlert=Boolean(Number(item[3])||unreadMap[notificationId]);
+        const icon=isIndustryLauncher?`<span class="run-trigger">▶</span>`:(mode==="daily"?`<span class="status ${item[2]}"></span>`:taskGlyph(mode,item[4],hasAlert));
+        const navigate=mode==="daily"&&item[3]?`openDaily('${item[3]}')`:(mode==="alert"&&item[4]?`openAlert('${item[4]}')`:(mode==="portfolio"&&item[4]?`openPortfolio('${item[4]}')`:(mode==="commission"&&item[4]?`openCommission('${item[4]}')`:"")));
+        const action=`onclick="markContentRead('${notificationId}');dismissTaskBadge('${mode}',${index});${navigate}"`;
+        const badge="";
+        const subtitle=isIndustryLauncher&&industryDepthRunning?"正在执行":item[1];
+        html+=`<button class="task-row ${selected}" ${action}>${icon}<span class="task-copy"><span class="task-title-row"><span class="task-title">${item[0]}</span>${unreadMap[notificationId]?'<span class="unread-dot"></span>':''}</span><small>${subtitle}</small></span></button>`;
+      });
+      wrap.innerHTML=html;
+    }
+    function dismissModeBadge(mode){
+      const dot=document.getElementById(`${mode}ModeDot`);
+      if(dot)dot.classList.add("hidden");
+    }
+    function dismissTaskBadge(mode,index){
+      if(Number(lists[mode][index][3]))lists[mode][index][3]=0;
+      dismissModeBadge(mode);
+    }
+    function activatePage(id,crumb,title){
+      document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+      const page=document.getElementById(id);
+      page.classList.add("active");
+      page.scrollTop=0;
+    }
+    function openDaily(task){
+      currentDailyTask=task;
+      currentMode="daily";
+      if(task==="strategy"){
+        activatePage("dailyPage","日常栏目","早盘策略");
+        runStrategyDemo();
+        setComposerContext("想调整早盘策略的素材、观点或输出？和我说就行！",["查看运行进度","调整生成重点","完成后提醒"]);
+      }else if(task==="event"){
+        activatePage("dailyEventPage","日常栏目","重要事件点评");
+        setComposerContext("想调整事件范围、解读角度或渠道形式？和我说就行！",["调整事件优先级","补充一个事件","改成微信群素材"]);
+      }else{
+        openTaskDialogue(task);
+      }
+      renderTasks("daily");
+    }
+    function openAlert(task){
+      currentAlertTask=task;
+      currentMode="alert";
+      if(task==="industry"){
+        activatePage("industryPage","市场异动","自选行业");
+        setComposerContext("想调整行业解读的观点、重点或输出渠道？和我说就行！",["补充海外传导","压缩成微信群素材","生成财富圈长文"]);
+      }else if(task==="market"){
+        activatePage("marketWatchPage","市场异动","大盘");
+        setComposerContext("新增或修改大盘异动监测条件…",["新增条件","修改条件","查看全部规则"]);
+      }else if(task==="stocks"){
+        activatePage("stockWatchPage","市场异动","自选个股");
+        setComposerContext("想核验哪只个股，或调整哪条监测阈值？",["核验中际旭创异动","修改拉升阈值","新增自选个股"]);
+      }else{
+        activatePage("alertPage","市场异动","重大事件");
+        setComposerContext("想调整这条微信群素材的语气、长度或应对重点？",["语气更安抚","补充A股应对","转换短视频脚本"]);
+      }
+      renderTasks("alert");
+    }
+    function openPortfolio(task){
+      currentPortfolioTask=task;
+      currentMode="portfolio";
+      if(task==="portfolioAlert"){
+        activatePage("portfolioPage","组合陪伴","组合异动");
+        setComposerContext("想调整陪伴语气、客户范围或发布群？和我说就行！",["语气更温和","补充组合影响","生成社群版本"]);
+      }else{
+        openTaskDialogue(task);
+      }
+      renderTasks("portfolio");
+    }
+    function openCommission(task){
+      currentCommissionTask=task;
+      currentMode="commission";
+      activatePage("commissionPage","平台约稿","黄金市场震荡");
+      setComposerContext("想调整约稿方向、生成逻辑或交付形式？和我说就行！",["调整黄金观点","修改分析逻辑","查看交付要求"]);
+      renderTasks("commission");
+    }
+    function setMode(mode){
+      currentMode=mode;
+      dismissModeBadge(mode);
+      document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("active",b.dataset.mode===mode));
+      if(mode==="daily")openDaily(currentDailyTask);
+      if(mode==="alert")openAlert(currentAlertTask);
+      if(mode==="portfolio")openPortfolio(currentPortfolioTask);
+      if(mode==="commission")openCommission(currentCommissionTask);
+      renderTasks(mode);
+    }
+    let strategyTimers=[];
+    function runStrategyDemo(){
+      strategyTimers.forEach(clearTimeout);
+      strategyTimers=[];
+      document.getElementById("review").style.display="none";
+      document.getElementById("runningView").style.display="block";
+      const step1=document.getElementById("strategyStep1");
+      const step2=document.getElementById("strategyStep2");
+      const collection=document.getElementById("strategyCollection");
+      step1.className="step run";
+      step2.className="step is-pending";
+      document.getElementById("strategyStep1No").innerHTML='<i class="spin"></i>';
+      document.getElementById("strategyStep2No").textContent="2";
+      document.getElementById("strategyStep1State").textContent="正在运行";
+      document.getElementById("strategyStep2State").textContent="等待上一步";
+      document.getElementById("strategyRunState").textContent="正在采集";
+      document.getElementById("strategyRunMeta").textContent="素材截点 07:45 · 正在启动今日任务";
+      document.getElementById("strategyPercent").textContent="8%";
+      document.getElementById("strategyEta").textContent="正在连接素材源";
+      document.getElementById("strategyProgress").style.width="8%";
+      document.getElementById("strategyCollectionTitle").textContent="正在查看今日素材";
+      document.getElementById("strategyCollectionState").textContent="采集中";
+      collection.classList.add("collecting");
+      strategyTimers.push(setTimeout(()=>{
+        document.getElementById("strategyRunMeta").textContent="素材截点 07:45 · 已连接 4 类素材源";
+        document.getElementById("strategyPercent").textContent="18%";
+        document.getElementById("strategyEta").textContent="正在读取研报与行情";
+        document.getElementById("strategyProgress").style.width="18%";
+      },900));
+      strategyTimers.push(setTimeout(()=>{
+        step1.className="step done";
+        document.getElementById("strategyStep1No").textContent="✓";
+        document.getElementById("strategyStep1State").textContent="1分 12秒";
+        step2.className="step run";
+        document.getElementById("strategyStep2No").innerHTML='<i class="spin"></i>';
+        document.getElementById("strategyStep2State").textContent="正在运行";
+        document.getElementById("strategyRunState").textContent="正在分析";
+        document.getElementById("strategyRunMeta").textContent="今日素材采集完成 · 正在比对产业链新增信息";
+        document.getElementById("strategyPercent").textContent="32%";
+        document.getElementById("strategyEta").textContent="预计还需 6 分钟";
+        document.getElementById("strategyProgress").style.width="32%";
+        document.getElementById("strategyCollectionTitle").textContent="今日素材已查看";
+        document.getElementById("strategyCollectionState").textContent="采集完成";
+        collection.classList.remove("collecting");
+      },1900));
+    }
+    const taskScenes={
+      morningSignal:{
+        label:"定时任务 · 每日 07:45",title:"早盘风向标",state:"任务已启用",
+        intro:"分析全部跟踪行业板块的最新动向，并判断当天最值得关注的行业。",
+        flow:["读取关注行业池","汇总隔夜与盘前增量","横向比较景气与催化","输出今日关注行业"],
+        details:[["跟踪范围","半导体、AI 算力、电网设备、通信等 12 个行业"],["生成语气","投顾个人特色"],["最近产出","昨日：存储景气强化，关注国产替代与设备链"]],
+        message:"早盘风向标已设置为每天 07:45 自动执行。我会扫描全部关注行业的隔夜表现、产业新增信息、研报变化和当日催化，比较后只给出最值得关注的方向，并说明理由、风险和验证项。想调整任务，还是现在运行一次？",
+        suggestions:["修改跟踪行业","现在运行一次","查看最近产出"]
+      },
+      recap:{
+        label:"定时任务 · 每日 15:45",title:"极简复盘",state:"任务已启用",
+        intro:"收盘后快速复盘指数、行业和主线表现，形成可直接发布的极简观点。",
+        flow:["读取收盘行情","核验主要异动","对照早盘判断","生成极简复盘"],
+        details:[["覆盖内容","指数、成交、涨跌比、领涨领跌行业与主线验证"],["生成语气","投顾个人特色"],["最近产出","昨日：指数普跌、科创抗跌、电子资金相对占优"]],
+        message:"极简复盘已设置为每天 15:45 自动执行。任务会先读取收盘数据，再核验关键异动原因，并对照早盘观点写出 300—500 字复盘，保留核心判断、明日验证项和风险提示。想修改任务，还是现在运行一次？",
+        suggestions:["修改复盘结构","现在运行一次","查看最近产出"]
+      },
+      industryDepth:{
+        label:"随时可执行",title:"行业深度",state:"等待输入",
+        intro:"围绕指定行业、事件和观点，生成有事实依据与证据边界的深度分析。",
+        flow:["确认行业与事件","核验事实与研报","形成观点与反证","生成指定渠道稿"],
+        details:[["需要输入","行业、触发事件、看好 / 中性 / 不看好观点"],["可选深度","简单分析或深度分析"],["输出形式","财富圈分析、微信群素材或短视频稿件"]],
+        message:"可以。先告诉我想写哪个行业、发生了什么、你的核心观点，以及希望输出到什么渠道。我会先把事实层和观点层分开，再补上产业传导、反证与应对节奏。",
+        suggestions:["使用通信行业示例","选择输出形式","开始生成"]
+      },
+      portfolioDaily:{
+        label:"定时任务 · 每日 16:30",title:"组合日报",state:"任务已启用",
+        intro:"基于当日组合数据与市场表现，生成简洁、可解释的客户陪伴日报。",
+        flow:["同步组合数据","拆解资产贡献","识别需解释波动","生成日报并复核"],
+        details:[["组合","钰你同行 · 大类资产配置组合"],["重点说明","当日表现、贡献来源、风险状态与下一步关注"],["最近产出","昨日：科技资产拖累，组合整体仍在预设波动区间"]],
+        message:"组合日报已设置为每个交易日 16:30 自动执行。我会同步组合净值估算与各类资产贡献，判断是否有需要主动解释的波动，再生成一版面向客户的陪伴日报。想修改任务，还是现在运行一次？",
+        suggestions:["修改日报重点","现在运行一次","查看最近产出"]
+      },
+      portfolioWeekly:{
+        label:"定时任务 · 每周五 17:00",title:"组合周报",state:"任务已启用",
+        intro:"汇总一周组合表现、收益归因、风险变化与下周需要关注的市场窗口。",
+        flow:["汇总周度数据","完成收益归因","检查回撤与风险","生成周报并复核"],
+        details:[["组合","钰你同行 · 大类资产配置组合"],["重点说明","周度表现、资产贡献、组合纪律与下周观察"],["最近产出","上周：大类资产分散有效，科技波动未触发调仓"]],
+        message:"组合周报已设置为每周五 17:00 自动执行。任务会汇总本周组合表现与各类资产贡献，解释波动来源，检查回撤和调仓规则，并给出下周重点观察。想修改任务，还是现在运行一次？",
+        suggestions:["修改周报结构","现在运行一次","查看最近产出"]
+      },
+      portfolioCare:{
+        label:"随时可执行",title:"日常陪伴",state:"随时可执行",
+        intro:"围绕定投、持仓波动和客户常见问题，生成匹配组合语境的陪伴文案。",
+        flow:["选择陪伴场景","读取组合上下文","生成客户语言","确认对象与渠道"],
+        details:[["支持场景","定投建议、持仓说明、市场波动安抚"],["组合","钰你同行"],["输出形式","一对一消息或配置群素材"]],
+        message:"日常陪伴可以随时运行。你只要告诉我客户遇到的场景，我会结合“钰你同行”的配置逻辑生成一版克制、具体的说明，并保留人工确认和发布选择。",
+        suggestions:["生成定投陪伴","解释近期回撤","生成配置群素材"]
+      }
+    };
+    function setComposerContext(placeholder,suggestions){
+      const input=document.getElementById("composerInput");
+      input.placeholder=placeholder;
+      document.getElementById("composerExamples").innerHTML=suggestions.map(text=>`<button class="uc-example" onclick="setComposerExample('composerInput','${text}')">${text}</button>`).join("");
+    }
+    function setSceneComposer(label,text){
+      const input=document.getElementById("composerInput");
+      input.value=text;
+      input.focus();
+      toast(`${label}已填入输入框`);
+    }
+    function openTaskDialogue(task){
+      const scene=taskScenes[task];
+      if(!scene)return;
+      activatePage("taskDialoguePage",currentMode==="portfolio"?"组合陪伴":"日常栏目",scene.title);
+      document.getElementById("taskSceneLabel").textContent=scene.label;
+      document.getElementById("taskSceneTitle").textContent=scene.title;
+      document.getElementById("taskSceneIntro").textContent=scene.intro;
+      document.getElementById("taskSceneState").textContent=scene.state;
+      document.getElementById("taskSceneFlow").innerHTML=scene.flow.map((text,index)=>`<span><b>${index+1}</b>${text}</span>`).join("");
+      document.getElementById("taskSceneDetails").innerHTML=scene.details.map(item=>`<div class="task-detail"><span>${item[0]}</span><strong>${item[1]}</strong></div>`).join("");
+      const isDepth=task==="industryDepth";
+      const actions=isDepth
+        ?`<button onclick="setSceneComposer('示例','写一篇通信行业大跌的深度分析，观点是长期仍然看好；生成财富圈深度分析')">使用示例</button><button class="primary-action" onclick="runSceneTask('${task}')">开始生成</button>`
+        :`<button onclick="editSceneTask('${task}')">1 · 修改任务</button><button class="primary-action" onclick="runSceneTask('${task}')">2 · 现在运行一次</button><button onclick="toast('已打开最近一次产出')">查看最近产出</button>`;
+      document.getElementById("taskDialogueThread").innerHTML=`<div class="message"><div class="msg-avatar" aria-label="内容创作助手"></div><div class="bubble"><div class="msg-meta"><strong>内容创作助手</strong></div><p>${escapeHtml(scene.message)}</p><div class="dialogue-actions">${actions}</div>${isDepth?'<div class="industry-prompt-card"><strong>告诉我这次要写什么</strong><p>请补充行业、触发事件、核心观点与希望输出的形式。我会先核验事实，再生成有证据边界的行业深度稿。</p><p class="prompt-example">例如：写一篇通信行业大跌的深度分析，观点是长期仍然看好。</p></div>':""}</div></div>`;
+      setComposerContext(isDepth?"请输入行业、触发事件、观点和输出形式…":`想调整「${scene.title}」？和我说就行！`,scene.suggestions);
+      decorateAvatars();
+    }
+    function editSceneTask(task){
+      const scene=taskScenes[task];
+      setSceneComposer("修改任务",`把「${scene.title}」调整为：`);
+    }
+    function runSceneTask(task){
+      const scene=taskScenes[task];
+      const input=document.getElementById("composerInput");
+      if(task==="industryDepth"&&!input.value.trim()){
+        input.value="写一篇通信行业大跌的深度分析，观点是长期仍然看好；生成财富圈深度分析";
+      }
+      document.getElementById("taskSceneState").textContent="本次运行中";
+      document.getElementById("taskSceneState").classList.add("running");
+      const thread=document.getElementById("taskDialogueThread");
+      thread.insertAdjacentHTML("beforeend",`<div class="message user-msg"><div class="bubble"><div class="msg-meta"><strong>你</strong></div><p>${task==="industryDepth"?escapeHtml(input.value):"现在运行一次"}</p></div></div><div class="message"><div class="msg-avatar" aria-label="内容创作助手"></div><div class="bubble"><div class="msg-meta"><strong>内容创作助手</strong></div><p>${task==="industryDepth"?"已收到。正在核验通信行业大跌原因、产业趋势和长期看好观点的证据边界，随后生成财富圈深度分析。":`已启动「${scene.title}」本次任务。正在按既定流程采集数据、核验事实并生成内容，完成后会进入人工确认。`}</p><div class="chips"><span>任务已启动</span><span>人工确认后交付</span></div></div></div>`);
+      decorateAvatars();
+      input.value="";
+      document.getElementById("taskDialoguePage").scrollTop=document.getElementById("taskDialoguePage").scrollHeight;
+      toast(`${scene.title}已开始运行`);
+    }
+    function acceptCommission(){
+      document.getElementById("commissionIntake").style.display="none";
+      document.getElementById("commissionBriefing").style.display="block";
+      lists.commission[0][1]="已认领 · 待确认要求";
+      lists.commission[0][3]=0;
+      dismissModeBadge("commission");
+      renderTasks("commission");
+      document.getElementById("commissionPage").scrollTop=0;
+      toast("约稿单已认领，专业、合规和产能匹配通过");
+    }
+    function transferCommission(){toast("已打开可转派投顾列表")}
+    function rejectCommission(){toast("拒绝前需选择原因，本 Demo 不提交")}
+    function generateCommissionDraft(){
+      const stance=document.querySelector('input[name="goldStance"]:checked').value;
+      const length=document.querySelector('input[name="goldLength"]:checked').value;
+      const logics=[...document.querySelectorAll('input[name="goldLogic"]:checked')].map(input=>input.value);
+      const other=document.getElementById("commissionOther").value.trim();
+      document.getElementById("commissionUserSummary").textContent=`${stance}判断；${logics.length?`使用${logics.join("、")}`:"由助手补全分析逻辑"}；约 ${Number(length).toLocaleString()} 字；${other||"用我的风格生成稿件。"}`;
+      document.getElementById("commissionBriefing").style.display="none";
+      document.getElementById("commissionResult").style.display="block";
+      lists.commission[0][1]="初稿已生成 · 待定稿";
+      renderTasks("commission");
+      document.getElementById("commissionPage").scrollTop=0;
+      toast("黄金深度图文初稿已生成");
+    }
+    function finalizeCommission(){
+      lists.commission[0][1]="已完成 · 定稿资产已归档";
+      renderTasks("commission");
+      toast("专业与合规复核完成，已形成定稿资产");
+    }
+    function showReview(){document.getElementById("runningView").style.display="none";document.getElementById("review").style.display="block";document.getElementById("dailyPage").scrollTop=0;toast("早盘策略已完成，进入人工复核")}
+    function showRunning(){document.getElementById("review").style.display="none";document.getElementById("runningView").style.display="block";document.getElementById("dailyPage").scrollTop=0;runStrategyDemo()}
+    function showEventReview(){document.getElementById("eventRunning").style.display="none";document.getElementById("eventReview").style.display="block";document.getElementById("dailyEventPage").scrollTop=0;toast("重要事件点评已完成，进入人工复核")}
+    function showEventRunning(){document.getElementById("eventReview").style.display="none";document.getElementById("eventRunning").style.display="block";document.getElementById("dailyEventPage").scrollTop=0}
+    const channelNames={circle:"财富圈版本",group:"微信群版本",video:"短视频口播脚本",wechat:"微信图文版本",direct:"一对一客户消息"};
+    const channelMeta={
+      circle:["约 760 字","核心观点 + 操作节奏 + 风险"],
+      group:["约 320 字","3—4 段可分发"],
+      video:["约 90 秒","钩子 + 观点 + 收口"],
+      wechat:["约 1,600 字","标题 + 摘要 + 分节正文"],
+      direct:["约 220 字","客户称呼 + 影响 + 陪伴"]
+    };
+    const channelContent={
+      strategy:{
+        circle:`【超级周开幕：科技逢低关注，但不要追】
+
+家人们，这个周末好消息不少：美伊释放缓和信号，油价快速回落；稳市场政策信号增加；央行提前预告逆回购；长鑫科技今天登陆科创板。
+
+但风险也要看见。上周五纳斯达克下跌 0.64%，费城半导体指数下跌 4.25%；A 股上证下跌 1.61%，涨跌比 555:4941，两市成交缩量到 1.93 万亿。
+
+我的判断是：好消息在累积，坏消息在消化，但政治局会议、美联储议息、长鑫上市和 AI 巨头财报都集中在本周，结果还没有落地。
+
+操作上仍然是不追、不恐慌、等回踩。科技方向重点看半导体、存储和 AI 算力。有持仓的伙伴不急着因为开盘情绪做动作；没持仓的伙伴等回踩分批关注，不要一笔买满。
+
+接下来重点验证长鑫上市首日表现、政策力度和 AI 巨头资本开支指引。本文为内部编辑参考，不构成投资建议。`,
+        group:`家人们，今天进入“超级周”。
+
+周末有几条重要变化：美伊释放缓和信号，油价回落；稳市场政策信号增加；长鑫科技今天上市。但上周五费城半导体指数也下跌了 4.25%，A 股成交缩量到 1.93 万亿。
+
+先说观点：好消息在累积，坏消息在消化，但政治局会议、美联储议息、长鑫上市和 AI 巨头财报都还要验证。今天不追、不恐慌，看收盘不看开盘。已有科技配置的伙伴不急着因为早盘波动做动作；没配置的伙伴等回踩分批关注，给自己留余地。
+
+本周重点看三个信号：长鑫上市后的半导体反馈、政策力度、AI 巨头资本开支指引。`,
+        video:`标题：超级周开幕，科技股今天还能不能看？
+
+开场：
+周末利好很多，但费城半导体指数却跌了 4.25%。今天科技方向到底应该担心，还是应该找机会？
+
+正文：
+先看好的一面。美伊释放缓和信号，油价快速回落；政策端稳市场信号增加；长鑫科技今天正式上市。
+
+再看风险。上周五纳斯达克下跌 0.64%，A 股也是普跌，成交缩量到 1.93 万亿。本周还有政治局会议、美联储议息和 AI 巨头财报，结果都没落地。
+
+我的判断很直接：好消息在累积，坏消息在消化，但现在不适合追高。科技主线可以逢低关注，重点看半导体、存储和 AI 算力，分批来，别一笔买满。
+
+收口：
+今天看收盘，不因为开盘情绪改变原有计划。`,
+        wechat:`标题：超级周开幕：利好密集，但科技仍要等回踩
+
+摘要：美伊缓和、政策信号、长鑫上市与 AI 财报窗口同时出现。利好在累积，但关键结果尚未落地，科技主线保持逢低关注、分批应对。
+
+一、市场截面
+上周五道指上涨 0.46%，标普上涨 0.05%，纳指下跌 0.64%，费城半导体指数下跌 4.25%。A 股方面，上证下跌 1.61%，深成指下跌 2.47%，创业板下跌 2.65%，两市成交缩量到 1.93 万亿。
+
+二、周末的四个增量
+美伊释放缓和信号，油价快速回落；稳市场政策信号增加；央行提前预告逆回购；长鑫科技今日登陆科创板。
+
+三、本周仍待验证
+政治局会议决定政策力度，美联储议息影响全球科技估值，AI 巨头财报将验证资本开支，长鑫上市表现则成为国产存储的新观察锚。
+
+四、操作节奏
+不追、不恐慌、等回踩。科技方向重点关注半导体、存储和 AI 算力，已有持仓不因开盘波动急着动作，新增关注则分批进行。
+
+风险提示：地缘局势、利率决策和财报指引均可能发生变化。`
+      },
+      event:{
+        circle:`【超级周五件事，逐件讲清楚】
+
+第一，美伊释放缓和信号，油价从 100 美元上方回到 86.67。短期有利于缓解通胀和加息压力，对科技成长偏友好，但地缘局势仍可能反复。
+
+第二，证监会稳市场表态与央行流动性安排，强化了政策托底预期。这是中期制度性信号，不等于市场马上反转。
+
+第三，长鑫科技今天上市。上市首日涨跌是短期，国产 DRAM 的产业进程是中期。先看收盘与成交，不因开盘情绪下结论。
+
+第四，海外存储与 AI 硬件合作消息，和费半下跌 4.25% 形成反差。短期杠杆资金冲击，与中期产业需求要分开看。
+
+第五，宁德时代大额回购利于龙头信心修复，但不改变当前核心方向的关注顺序。
+
+总结：好消息在累积，坏消息在消化，但关键事件尚待验证。节奏仍然是不追、不恐慌、等回踩。`,
+        group:`🔥 家人们，周末事情很多，先把最重要的几件说清楚：
+
+🌍 美伊释放缓和信号，油价快速回落。短期对通胀和科技估值偏友好，但地缘局势仍可能反复。
+
+🛡️ 稳市场政策信号增强，央行也提前安排流动性。这是托底信号，不等于明天立刻反转。
+
+💡 长鑫科技今天上市，国产 DRAM 有了新的观察锚。上市首日的波动是短期，产业替代是中期。
+
+📉 费城半导体指数下跌 4.25%，但 AI 硬件需求仍有订单线索。短期资金冲击和产业趋势要分开看。
+
+👉 今天的节奏不变：不追、不恐慌、等回踩。重点看收盘、政策力度和本周 AI 巨头财报。`,
+        video:`标题：周末五件大事，真正影响市场的是哪几件？
+
+家人们，这个周末信息很多，一眼看过去全是利好和利空，最容易做的错事就是把它们混在一起。我帮大家按短期、中期和验证信号，讲成三个判断。
+
+第一，美伊释放缓和信号，油价从高位快速回落。油价下去，通胀压力和加息紧迫性就会小一点，所以短期对科技成长估值偏友好。但中东局势随时可能反复，这只能算短期催化，不能当成趋势已经确定。
+
+第二，稳市场政策信号和流动性安排同步增加。这个信号告诉我们，市场下行风险正在被约束，但政策底不等于市场明天就见底，中间仍可能反复磨。所以节奏上不是看到利好就追，而是等市场给舒服的位置。
+
+第三，长鑫上市与海外 AI 硬件合作消息，说明存储产业仍有中期逻辑。费城半导体指数上周五下跌 4.25%，确实会冲击今天的情绪，但一天的下跌还不能证明产业趋势反转。我们要把短期资金波动和中期订单需求分开看。
+
+所以今天怎么做？不追，也不恐慌。已有配置的伙伴不要因为开盘情绪急着动作；准备关注的伙伴等回踩、分批来。接下来重点看长鑫上市后的板块承接、政治局会议的政策力度，以及 AI 巨头财报里的资本开支指引。
+
+总结一句话：好消息在累积，坏消息在消化，但关键结果还没落地。今天看收盘，不看开盘，保持节奏。`
+      },
+      alert:{
+        circle:`【费半下跌 4.25%，A 股半导体怎么看？】
+
+上周五纳斯达克下跌 0.64%，费城半导体指数下跌 4.25%，存储和云计算方向波动更明显。
+
+先说判断：一天的大跌会影响情绪，但还不足以推翻产业趋势。韩国市场同时存在杠杆资金出清，而产业端仍有存储和 AI 硬件需求线索。
+
+对 A 股来说，设备、存储和算力链可能先受到情绪传导。已有配置不急着在情绪最差的时候做决定；没有配置也别急着抢反弹。今天看收盘，不因为开盘波动改变计划。
+
+下一步看长鑫上市后的板块反馈，以及 AI 巨头财报中的资本开支指引。`,
+        video:`标题：费半大跌 4.25%，今天半导体要不要先跑？
+
+家人们，费城半导体指数上周五单日下跌 4.25%，存储和云计算方向波动更大。很多人第一反应是：今天 A 股半导体是不是要先跑？先别急，我们把情绪和产业分开看。
+
+第一，这次下跌确实会传导风险偏好。纳斯达克同期下跌 0.64%，说明压力更集中在芯片方向，所以今天 A 股存储、设备和 AI 算力的开盘波动可能会放大。
+
+第二，一天的大跌还不足以证明产业趋势反转。韩国市场同时存在杠杆资金出清，而产业端仍有存储、AI 硬件订单与合作线索。短期资金冲击和中期需求，不能混在一起下结论。
+
+第三，今天更重要的是应对节奏。已有配置的伙伴，不在情绪最差的时候急着做决定；没有配置的伙伴，也别抢开盘反弹。看收盘，再用长鑫上市后的板块承接、DRAM 价格，以及本周 AI 巨头资本开支指引来验证。
+
+如果后续连续出现订单削减、存储价格转弱和资本开支下修，我们再重新评估中期判断。在这些信号出现之前，更适合把它理解为一次需要观察的短期冲击。`,
+        group:`🟢 家人们，费城半导体指数上周五下跌 4.25%，今天 A 股半导体可能先受到情绪影响。
+
+💬 但先别慌。一天的大跌还不足以说明产业趋势反转，韩国市场同时存在杠杆资金出清，产业端仍有存储和 AI 硬件需求线索。
+
+👉 已有配置的伙伴，不急着在情绪最差的时候做决定；没有配置的伙伴，也别急着抢反弹。今天看收盘，接下来用长鑫上市反馈和 AI 巨头资本开支指引验证。`
+      },
+      industry:{
+        circle:`【三条产业增量：存储看长鑫，算力看Capex，电网看国家投资】
+
+今天自选行业新增了三条重要信息。
+
+第一，半导体 / 存储。长鑫科技正式登陆科创板，发行价 8.66 元，募集资金约 579.19 亿元，A 股有了更直接的国产 DRAM 龙头定价锚。海外方面，韩国总统府披露约 9500 亿美元、期限五年的半导体合作框架，其中三星与博通签署约 2000 亿美元合作谅解备忘录，SK 将推进约 7500 亿美元长期合作。注意，这是合作框架，不等于已经全部确认收入。价格端，TrendForce 7 月 27 日数据显示，DDR4 16Gb 3200 现货均价单日上涨 1.52%。
+
+第二，AI 算力。Alphabet 最新预计 2026 年资本开支 1800—1900 亿美元，2025 年为 914 亿美元，主要投入服务器、数据中心和网络。韩国 AI 基础设施合作还规划约 5GW 算力设施和约 200 万个 GPU。资本开支没有收缩，但实际订单与回报仍要通过本周财报验证。
+
+第三，电网设备。中电联预计“十五五”全国电网固定资产投资超过 5 万亿元；国家电网 2026 年上半年完成固定资产投资超过 3100 亿元，同比增长 12.6%。这条线主要由国内基础设施建设、新能源并网和跨区输电驱动，与海外科技估值波动不完全同步。
+
+节奏上，半导体 / 存储先看长鑫上市后的板块反馈与 DRAM 价格；AI 算力看财报中的资本开支；电网设备看订单与招标。产业信息在强化，但不代表适合追高。`,
+        group:`🔥 家人们，今天产业端有三条重要增量：
+
+① 半导体 / 存储：长鑫科技正式上市，A 股有了国产 DRAM 龙头定价锚；韩国披露五年期 9500 亿美元半导体合作框架，DRAM 部分现货价格仍在上涨。注意，合作框架不等于已经确认收入。
+
+② AI 算力：Alphabet 预计 2026 年资本开支 1800—1900 亿美元，接近 2025 年的两倍，服务器、数据中心和网络仍是主要投向。本周继续看科技公司财报验证。
+
+③ 电网设备：“十五五”全国电网投资预计超过 5 万亿元，国家电网上半年投资超 3100 亿元、同比增长 12.6%，属于国内资本开支驱动。
+
+👉 节奏上不追。存储看长鑫和 DRAM 价格，AI 算力看财报，电网设备等回调后看订单。`,
+        video:`标题：长鑫上市、AI资本开支翻倍、电网投5万亿，三条产业线怎么选？
+
+家人们，今天产业端的信息很多，但大家不要把它们混成一个“大科技利好”。郭郭给大家拆成三条线。
+
+第一条，半导体和存储。长鑫科技今天正式登陆科创板，发行价 8.66 元，募集资金约 579.19 亿元。它最重要的意义，是 A 股第一次有了更直接的国产 DRAM 龙头定价锚，存储、设备、材料和封测都有了新的参照。
+
+海外也有增量。韩国总统府披露，韩国企业与全球科技公司推进五年期、总规模约 9500 亿美元的半导体合作。其中三星与博通签署约 2000 亿美元合作谅解备忘录，SK 将推进约 7500 亿美元长期合作。但大家听清楚，这是合作框架，不是已经全部变成收入。
+
+价格端，TrendForce 最新数据显示，DDR4 16Gb 3200 现货均价单日上涨 1.52%，说明部分 DRAM 价格仍在上行，但成交活跃度还要继续观察。
+
+第二条，AI 算力。Alphabet 最新预计 2026 年资本开支达到 1800 到 1900 亿美元，2025 年是 914 亿美元，接近翻倍。钱主要投向服务器、数据中心和网络。韩国相关合作还规划约 5GW 算力基础设施和约 200 万个 GPU。产业投入没有停，但最终能不能兑现为订单和利润，本周财报很关键。
+
+第三条，电网设备。中电联预计“十五五”全国电网固定资产投资超过 5 万亿元，国家电网上半年已经完成超过 3100 亿元，同比增长 12.6%。这条线主要由国内国家资本开支、新能源并网和跨区输电驱动，和海外科技股的短期涨跌不是同一套逻辑。
+
+所以怎么关注？半导体和存储先看长鑫上市后的板块反馈、DRAM价格和合作框架能不能变成合同；AI算力看本周财报里的资本开支；电网设备看订单、招标和交付。
+
+产业信息在强化，但今天不是看到利好就上头。已有持仓不慌，新增关注等波动消化。顺序上先看存储，再看半导体设备和先进封装；AI算力回踩关注；电网设备如果短期已经涨了一波，就等回调。`
+      },
+      portfolio:{
+        direct:`您好，和您同步一下昨夜市场情况：纳斯达克指数下跌 0.64%，费城半导体指数下跌 4.25%。
+
+按“钰你同行”当前持仓暴露估算，单日净值影响约为 -0.22%，主要来自半导体与海外科技相关仓位。组合采用大类资产配置，并不是单一押注科技方向，当前影响仍在预设波动范围内。
+
+现阶段不触发调仓提示，原有定投计划也不需要因为一个晚上的波动临时改变。我们会继续跟踪今天 A 股反馈和本周海外科技公司财报，如基本面发生变化会及时说明。`,
+        group:`和大家同步一下隔夜波动：
+
+上周五纳斯达克下跌 0.64%，费城半导体指数下跌 4.25%。按“钰你同行”当前持仓暴露估算，对组合单日净值的影响约为 -0.22%。
+
+“钰你同行”是大类资产配置组合，并不是单一押注科技方向，当前影响仍在预设波动范围内，暂不触发调仓提示。
+
+已有定投计划的伙伴，不需要因为一个晚上的波动临时改变节奏。我们会继续跟踪今天 A 股反馈和本周 AI 巨头财报，有变化会第一时间说明。`
+      }
+    };
+    function openChannel(type,source){
+      currentChannel={type,source};
+      const fallback=channelContent[source].group||channelContent[source].circle||channelContent[source].direct;
+      document.getElementById("channelTitle").textContent=channelNames[type];
+      document.getElementById("channelSource").textContent=source==="portfolio"?"基于组合影响估算生成":"基于已复核内容创作";
+      document.getElementById("channelLength").textContent=channelMeta[type][0];
+      document.getElementById("channelStructure").textContent=channelMeta[type][1];
+      const reviewedEvent=source==="event"&&type==="circle"?document.getElementById("eventDraft").value:null;
+      document.getElementById("channelOutput").value=reviewedEvent||channelContent[source][type]||fallback;
+      document.getElementById("modalCreative").style.display=source==="portfolio"?"none":"flex";
+      document.getElementById("channelPublishBtn").style.display="";
+      document.getElementById("channelRegenerateBtn").textContent="重新生成";
+      document.getElementById("channelFootNote").textContent="生成结果需人工确认后发布";
+      document.getElementById("channelModal").classList.add("show");
+    }
+    function buildCreativePrompt(type,title,content){
+      if(type==="video"){
+        return `【可直接复制｜短视频制作 Prompt】
+
+你是一名擅长金融投顾内容的短视频编导。请根据下方已经人工复核的正文，制作一条专业、可信、信息密度高的竖屏短视频。
+
+内容主题：${title}
+目标受众：关注 A 股、产业趋势与资产配置的普通投资者
+视频规格：9:16 竖屏，90—120 秒，真人口播为主
+整体气质：专业但不端着，克制、有陪伴感，不制造恐慌，不承诺收益
+
+请一次性输出：
+1. 3 个适合短视频平台的标题，避免标题党；
+2. 完整口播稿，开头 5 秒直接提出客户最关心的问题；
+3. 分镜表，按“时间 / 口播 / 画面 / 屏幕大字 / 转场”五列输出；
+4. 每个分镜需要的 B-roll 或动态图表描述；
+5. 封面文案 2 版，每版不超过 14 个字；
+6. 字幕重点词与数字高亮清单；
+7. 结尾风险提示与互动收口。
+
+制作要求：
+- 所有指数、日期、金额、涨跌幅和公司名称必须严格沿用原文，不得补写或改写数字；
+- 明确区分已发生事实、合作框架、机构观点和后续验证项；
+- 红色表示上涨、绿色表示下跌；
+- 不生成虚构 K 线、虚构人物采访、收益曲线或保证性表达；
+- 避免密集股票代码和满屏小字，每屏只表达一个重点；
+- 若原文包含操作节奏，只能表达为关注、等待、验证或风险管理，不改写成确定性买卖指令。
+
+—— 已复核正文开始 ——
+${content}
+—— 已复核正文结束 ——`;
+      }
+      return `【可直接复制｜图片制作 Prompt】
+
+你是一名金融内容视觉设计师。请根据下方已经人工复核的正文，生成一套适合财富圈、微信群和社交媒体使用的中文信息图片方案。
+
+内容主题：${title}
+视觉目标：让用户 3 秒内看懂核心观点，再通过信息卡理解关键事实与后续验证
+建议比例：封面 3:4；信息卡 3:4；同时给出可裁切为 1:1 的安全区
+整体风格：深色金融终端感 + 克制紫色强调，留白充足，避免传统券商海报的拥挤感
+
+请一次性输出：
+1. 1 张封面图的完整生成 Prompt；
+2. 3 张信息卡的完整生成 Prompt，分别对应“核心结论 / 关键数据 / 应对节奏”；
+3. 每张图片的主标题、副标题、数据模块和脚注；
+4. 统一配色、字体层级、图标和版式说明；
+5. Negative Prompt，排除乱码、虚假 Logo、夸张收益符号、错误 K 线和低清文字；
+6. 可直接交给图片生成平台的最终整合 Prompt。
+
+制作要求：
+- 中文必须清晰、简体、可读，主标题不超过 16 个字；
+- 所有数字、日期、公司名称和涨跌方向严格沿用原文；
+- A 股语义中红色表示上涨、绿色表示下跌；
+- 合作框架、预测和待验证内容必须用“框架 / 预计 / 待验证”等标签，不得画成已经兑现的事实；
+- 不使用真实投顾肖像、未经授权 Logo、货币堆叠、火箭暴涨等夸张元素；
+- 页面底部保留“内容经人工复核，不构成投资建议”的风险提示。
+
+—— 已复核正文开始 ——
+${content}
+—— 已复核正文结束 ——`;
+    }
+    function openCreativePrompt(type,sourceId,title){
+      const source=document.getElementById(sourceId);
+      const content=source&&"value" in source?source.value:"";
+      currentChannel={type:"creative",source:sourceId};
+      document.getElementById("channelTitle").textContent=type==="video"?"短视频制作 Prompt":"图片制作 Prompt";
+      document.getElementById("channelSource").textContent=`AI 创作包 · 已附带「${title}」完整正文`;
+      document.getElementById("channelLength").textContent=type==="video"?"90—120 秒竖屏":"封面 + 3 张信息卡";
+      document.getElementById("channelStructure").textContent=type==="video"?"口播 + 分镜 + B-roll":"构图 + 文案 + Negative Prompt";
+      document.getElementById("channelOutput").value=buildCreativePrompt(type,title,content);
+      document.getElementById("modalCreative").style.display="none";
+      document.getElementById("channelPublishBtn").style.display="none";
+      document.getElementById("channelRegenerateBtn").textContent="重新生成指令";
+      document.getElementById("channelFootNote").textContent="复制正文与制作指令，带到其他创作平台使用";
+      document.getElementById("channelModal").classList.add("show");
+    }
+    function closeChannel(){document.getElementById("channelModal").classList.remove("show")}
+    function regenerateChannel(){toast(currentChannel.type==="creative"?"已重新生成制作指令，可继续编辑后复制":"已重新生成一版，可继续编辑后复制")}
+    async function copyChannel(){
+      const output=document.getElementById("channelOutput");
+      output.select();
+      try{await navigator.clipboard.writeText(output.value)}catch(e){document.execCommand("copy")}
+      toast("渠道内容已复制");
+    }
+    async function copyTextById(id){
+      const output=document.getElementById(id);
+      output.select();
+      try{await navigator.clipboard.writeText(output.value)}catch(e){document.execCommand("copy")}
+      toast("内容已复制");
+    }
+    function sendSelected(button,prefix){
+      const menu=button.closest(".group-menu");
+      const selected=[...menu.querySelectorAll("input:checked")].map(input=>input.value);
+      if(!selected.length){toast("请至少选择一个群");return}
+      button.closest("details").open=false;
+      toast(`已发布至 ${selected.join("、")}`);
+    }
+    let pendingPublish={channel:"财富圈",content:""};
+    function publishCurrent(){
+      preparePublish(channelNames[currentChannel.type], "channelOutput");
+    }
+    function preparePublish(channel,sourceId){
+      const source=document.getElementById(sourceId);
+      pendingPublish={channel,content:source&&"value" in source?source.value:""};
+      const title=document.getElementById("publishTitle");
+      const desc=document.getElementById("publishDescription");
+      const list=document.getElementById("publishDestinations");
+      title.textContent=`去发布 · ${channel}`;
+      desc.textContent="内容已完成生成与人工复核。确认发布位置后即可完成本次内容任务。";
+      let destinations=[];
+      if(channel.includes("微信群")){
+        destinations=currentChannel.source==="portfolio"?["配置1群","配置2群","配置3群"]:["交易1群","交易2群","交易3群"];
+      }else if(channel.includes("一对一")){
+        destinations=["已选客户","重点陪伴客户"];
+      }else if(channel.includes("短视频")){
+        destinations=["短视频素材库","今日口播任务"];
+      }else{
+        destinations=["财富圈草稿箱","财富圈立即发布"];
+      }
+      list.innerHTML=destinations.map((name,index)=>`<label class="destination"><input type="checkbox" value="${name}" ${index===0?"checked":""}><span><strong>${name}</strong><small>${index===0?"默认发布位置":"可多选"}</small></span></label>`).join("");
+      document.getElementById("publishWordCount").textContent=`${pendingPublish.content.length} 字 · 已通过复核`;
+      document.getElementById("publishModal").classList.add("show");
+    }
+    function closePublish(){document.getElementById("publishModal").classList.remove("show")}
+    function confirmPublish(){
+      const selected=[...document.querySelectorAll("#publishDestinations input:checked")].map(input=>input.value);
+      if(!selected.length){toast("请至少选择一个发布位置");return}
+      closePublish();
+      if(document.getElementById("channelModal").classList.contains("show")){
+        document.getElementById("channelSource").textContent=`已发布至 ${selected.join("、")} · 内容仍可继续查看`;
+      }
+      toast(`发布完成：${selected.join("、")}`);
+    }
+    let toastTimer;
+    function toast(text){const el=document.getElementById("toast");document.getElementById("toastText").textContent=text;el.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove("show"),2200)}
+    function focusComposer(){document.getElementById("composerInput").focus()}
+    function sendMessage(){
+      const input=document.getElementById("composerInput");
+      const text=input.value.trim();
+      if(!text)return;
+      if(document.getElementById("taskDialoguePage").classList.contains("active")){
+        const thread=document.getElementById("taskDialogueThread");
+        thread.insertAdjacentHTML("beforeend",`<div class="message user-msg"><div class="bubble"><div class="msg-meta"><strong>你</strong></div><p>${escapeHtml(text)}</p></div></div><div class="message"><div class="msg-avatar" aria-label="内容创作助手"></div><div class="bubble"><div class="msg-meta"><strong>内容创作助手</strong></div><p>收到，我会把这项要求更新到当前任务中。你可以继续补充，或直接点击“现在运行一次”查看结果。</p></div></div>`);
+        decorateAvatars();
+        document.getElementById("taskDialoguePage").scrollTop=document.getElementById("taskDialoguePage").scrollHeight;
+        toast("已更新当前任务要求");
+      }else{
+        toast("已加入当前场景的处理要求");
+      }
+      input.value="";
+    }
+    document.addEventListener("click",(event)=>{
+      const button=event.target.closest("button");
+      if(!button)return;
+      button.querySelectorAll(".dot,.count").forEach(badge=>badge.remove());
+    });
+    /* ===== 内容创作工作台增强：未读红点 / 全局搜索 / 三点菜单 / 头像重设计 ===== */
+    function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+    /* ---- 未读红点体系 ---- */
+    const STORAGE_KEY='mcn_unread_content_v2';
+    const DEFAULT_UNREAD=['daily-0','daily-1','alert-industry','alert-major','commission-gold'];
+    const unreadMap={};
+    function loadUnread(){
+      try{
+        const saved=localStorage.getItem(STORAGE_KEY);
+        if(saved){
+          const data=JSON.parse(saved);
+          Object.keys(data).forEach(k=>unreadMap[k]=data[k]);
+          return;
+        }
+      }catch(e){}
+      DEFAULT_UNREAD.forEach(k=>unreadMap[k]=true);
+    }
+    function saveUnread(){
+      try{localStorage.setItem(STORAGE_KEY,JSON.stringify(unreadMap));}catch(e){}
+      document.dispatchEvent(new Event('mcn:unread-updated'));
+    }
+    function setInitialUnread(){loadUnread();}
+    function updateContentBadge(){
+      const b=document.getElementById('tabContentBadge');
+      if(!b)return;
+      const n=Object.keys(unreadMap).filter(k=>unreadMap[k]).length;
+      b.textContent=String(n);
+      b.classList.toggle('is-empty',n===0);
+    }
+    function markContentRead(id){if(id)unreadMap[id]=false;saveUnread();updateContentBadge();}
+
+    /* ---- 头像 SVG 重设计 ---- */
+    const PEN_SVG=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>`;
+    const DOC_SVG=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>`;
+    const GROUP_SVG=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M19 9l-5 5-3-3-4 4"/></svg>`;
+    function decorateAvatars(){
+      const CONTENT_IMG=`<img src="pictures/内容3.png" style="width:100%;height:100%;object-fit:cover;border-radius:10px;display:block" alt="内容创作助手">`;
+      const top=document.querySelector('.agent-top-avatar');
+      if(top&&!top.dataset.svgInjected){top.innerHTML=CONTENT_IMG;top.dataset.svgInjected='1';}
+      document.querySelectorAll('.msg-avatar').forEach(el=>{
+        if(el.dataset.svgInjected)return;
+        el.dataset.svgInjected='1';
+        el.innerHTML=CONTENT_IMG;
+      });
+    }
+
+    /* ---- 全局搜索 ---- */
+    const MSG_SVG=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+    const WF_SVG=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>`;
+    const APP_SVG=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg>`;
+    function initSearch(){
+      const wrap=document.getElementById('searchWrap');
+      const input=document.getElementById('globalSearch');
+      const results=document.getElementById('searchResults');
+      const clear=document.getElementById('searchClear');
+      if(!input||!results)return;
+      const appsIndex=[{name:'乐伴'},{name:'聊TA'},{name:'TEC'},{name:'乐道'},{name:'泰为'}];
+      const workflowSteps=['采集今日素材','分析产业链增量','主题联网搜索','准备事实卡与判断卡','检索历史语料','生成与声音校验','人工复核与合规检查'];
+      const modeLabel={daily:'日常栏目',alert:'市场异动',portfolio:'组合陪伴',commission:'平台约稿'};
+      const messageIndex=[];
+      Object.keys(lists).forEach(mode=>{
+        lists[mode].forEach((item,index)=>{messageIndex.push({name:item[0],sub:modeLabel[mode]+' · '+item[1],mode,index,item});});
+      });
+      function fuzzy(q,text){if(!q)return false;q=q.toLowerCase();text=String(text).toLowerCase();if(text.indexOf(q)>=0)return true;let ti=0;for(const ch of q){const i=text.indexOf(ch,ti);if(i<0)return false;ti=i+1;}return true;}
+      function hide(){results.classList.add('hidden');results.innerHTML='';}
+      function gotoFor(m,item){if(m==='daily')return item[3]?`setMode('daily');openDaily('${item[3]}')`:`setMode('daily')`;if(m==='alert')return item[4]?`setMode('alert');openAlert('${item[4]}')`:`setMode('alert')`;if(m==='portfolio')return item[4]?`setMode('portfolio');openPortfolio('${item[4]}')`:`setMode('portfolio')`;if(m==='commission')return item[4]?`setMode('commission');openCommission('${item[4]}')`:`setMode('commission')`;return `setMode('${m}')`;}
+      function render(q){
+        clear.classList.toggle('hidden',!q);
+        if(!q){hide();return;}
+        const msgHits=[],wfHits=[],appHits=[];
+        messageIndex.forEach(it=>{if(fuzzy(q,it.name)||fuzzy(q,it.sub))msgHits.push(it);});
+        workflowSteps.forEach(s=>{if(fuzzy(q,s))wfHits.push(s);});
+        appsIndex.forEach(a=>{if(fuzzy(q,a.name))appHits.push(a);});
+        /* 合入共享全局搜索索引 */
+        const G=window.__mcnGlobalSearch;if(G){G.messages.filter(m=>fuzzy(q,m.name)||fuzzy(q,m.sub)).forEach(m=>{if(!msgHits.some(x=>x.name===m.name))msgHits.push({name:m.name,sub:m.sub,mode:'global',item:m})});G.workflows.filter(w=>fuzzy(q,w.name)||fuzzy(q,w.sub)).forEach(w=>{if(!wfHits.some(x=>x===w||x.name===w.name))wfHits.push(w.name)});G.apps.filter(a=>fuzzy(q,a.name)).forEach(a=>{if(!appHits.some(x=>x.name===a.name))appHits.push({name:a.name})})}
+        if(!msgHits.length&&!wfHits.length&&!appHits.length){results.innerHTML=`<div class="search-empty">未找到与 "${escapeHtml(q)}" 相关的结果</div>`;results.classList.remove('hidden');return;}
+        let html='';
+        if(msgHits.length){html+=`<div class="search-sec">消息 / 任务</div>`;msgHits.forEach(it=>{html+=`<div class="search-item" onclick="${gotoFor(it.mode,it.item)};document.getElementById('searchResults').classList.add('hidden')"><div class="search-ico">${MSG_SVG}</div><div style="min-width:0"><div class="t">${escapeHtml(it.name)}</div><div class="s">${escapeHtml(it.sub)}</div></div></div>`;});}
+        if(wfHits.length){html+=`<div class="search-sec">工作流</div>`;wfHits.forEach(s=>{html+=`<div class="search-item" onclick="toast('工作流：${escapeHtml(s)}');document.getElementById('searchResults').classList.add('hidden')"><div class="search-ico">${WF_SVG}</div><div style="min-width:0"><div class="t">${escapeHtml(s)}</div><div class="s">内容创作工作流</div></div></div>`;});}
+        if(appHits.length){html+=`<div class="search-sec">应用</div>`;appHits.forEach(a=>{html+=`<div class="search-item" onclick="toast('打开应用：${escapeHtml(a.name)}');document.getElementById('searchResults').classList.add('hidden')"><div class="search-ico">${APP_SVG}</div><div style="min-width:0"><div class="t">${escapeHtml(a.name)}</div><div class="s">内容创作应用</div></div></div>`;});}
+        results.innerHTML=html;results.classList.remove('hidden');
+      }
+      input.addEventListener('input',e=>render(e.target.value.trim()));
+      input.addEventListener('focus',e=>render(e.target.value.trim()));
+      input.addEventListener('keydown',e=>{if(e.key==='Escape'){input.value='';hide();input.blur();}});
+      clear.addEventListener('click',e=>{e.stopPropagation();input.value='';input.focus();hide();});
+      wrap.addEventListener('click',e=>e.stopPropagation());
+      results.addEventListener('click',e=>e.stopPropagation());
+      document.addEventListener('click',hide);
+    }
+
+    /* ---- 三点菜单与历史对话 ---- */
+    function toggleChatMenu(show){const m=document.getElementById('chatMenu');if(m)m.classList.toggle('hidden',!show);}
+    function resetToWelcome(){
+      setMode('daily');
+      const rv=document.getElementById('runningView');if(rv)rv.style.display='block';
+      const rev=document.getElementById('review');if(rev)rev.style.display='none';
+      const evtR=document.getElementById('eventRunning');if(evtR)evtR.style.display='block';
+      const evtRev=document.getElementById('eventReview');if(evtRev)evtRev.style.display='none';
+      const dp=document.getElementById('dailyPage');if(dp)dp.scrollTop=0;
+      toast('已回到默认欢迎态');
+    }
+    function openHistory(){
+      const modal=document.getElementById('historyModal');
+      const list=document.getElementById('historyList');
+      if(!modal||!list)return;
+      const modeLabel={daily:'日常栏目',alert:'市场异动',portfolio:'组合陪伴',commission:'平台约稿'};
+      list.innerHTML=Object.keys(lists).map(mode=>{
+        return lists[mode].map((item,index)=>`<div class="history-item" onclick="jumpToTask('${mode}',${index})"><div class="hi-ico">${MSG_SVG}</div><div style="min-width:0"><div class="hi-name">${escapeHtml(item[0])}</div><div class="hi-sub">${escapeHtml(modeLabel[mode])} · ${escapeHtml(item[1])}</div></div></div>`).join('');
+      }).join('');
+      modal.classList.add('show');
+    }
+    function closeHistory(){const m=document.getElementById('historyModal');if(m)m.classList.remove('show');}
+    function jumpToTask(mode,index){
+      const item=lists[mode][index];
+      if(mode==='daily'){setMode('daily');if(item[3])openDaily(item[3]);}
+      else if(mode==='alert'){setMode('alert');if(item[4])openAlert(item[4]);}
+      else if(mode==='portfolio'){setMode('portfolio');if(item[4])openPortfolio(item[4]);}
+      else if(mode==='commission'){setMode('commission');if(item[4])openCommission(item[4]);}
+      else setMode(mode);
+      closeHistory();
+    }
+    function initChatMenu(){
+      const more=document.getElementById('chatMoreBtn');
+      const menu=document.getElementById('chatMenu');
+      if(!more||!menu)return;
+      more.addEventListener('click',e=>{e.stopPropagation();toggleChatMenu(menu.classList.contains('hidden'));});
+      menu.addEventListener('click',e=>e.stopPropagation());
+      const nc=document.getElementById('menuNewChat');if(nc)nc.addEventListener('click',e=>{e.stopPropagation();toggleChatMenu(false);resetToWelcome();});
+      const nh=document.getElementById('menuHistory');if(nh)nh.addEventListener('click',e=>{e.stopPropagation();toggleChatMenu(false);openHistory();});
+      const mc=document.getElementById('menuClear');if(mc)mc.addEventListener('click',e=>{e.stopPropagation();toggleChatMenu(false);resetToWelcome();});
+      const hc=document.getElementById('historyClose');if(hc)hc.addEventListener('click',()=>closeHistory());
+      const modal=document.getElementById('historyModal');if(modal)modal.addEventListener('click',e=>{if(e.target===modal)closeHistory();});
+      document.addEventListener('keydown',e=>{if(e.key==='Escape'){toggleChatMenu(false);closeHistory();}});
+    }
+
+    setInitialUnread();
+    setMode("daily");
+    updateContentBadge();
+    decorateAvatars();
+    initSearch();
+    initChatMenu();
+    window.addEventListener('load',()=>{
+      updateContentBadge();
+      decorateAvatars();
+    });
+  </script>
+  <div id="historyModal" class="history-modal">
+    <div class="history-panel">
+      <div class="history-head"><strong>历史对话</strong><button id="historyClose" aria-label="关闭">×</button></div>
+      <div id="historyList" class="history-list"></div>
+    </div>
+  </div>
+</body>
+</html>

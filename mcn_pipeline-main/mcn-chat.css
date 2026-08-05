@@ -1,0 +1,673 @@
+html,
+body,
+button,
+input,
+textarea,
+select{
+  font-family:'Inter','Noto Sans SC',sans-serif!important;
+}
+body{font-size:14px}
+
+.agent-topbar{
+  min-height:72px;
+  flex:0 0 72px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:0 24px;
+  border-bottom:1px solid #e2e8f0;
+  background:rgba(255,255,255,.96);
+  color:#0f172a;
+  z-index:10;
+}
+.agent-top-main{display:flex;align-items:center;gap:12px;min-width:0}
+.agent-top-avatar{
+  position:relative;
+  width:42px;
+  height:42px;
+  flex:0 0 42px;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  border-radius:50%;
+  background:#e0e7ff;
+  color:#2563eb;
+  font-size:0;
+  font-weight:800;
+}
+.agent-top-avatar::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:20%;
+  width:27%;
+  height:27%;
+  transform:translateX(-50%);
+  border-radius:50%;
+  background:currentColor;
+}
+.agent-top-avatar::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom:13%;
+  width:56%;
+  height:31%;
+  transform:translateX(-50%);
+  border-radius:50% 50% 28% 28%;
+  background:currentColor;
+}
+.agent-top-copy{display:grid;gap:4px;min-width:0}
+.agent-top-copy strong{font-size:14px;color:#1e293b;white-space:nowrap}
+.agent-top-copy span{display:flex;align-items:center;gap:6px;color:#64748b;font-size:12px}
+.agent-top-copy span::before{
+  content:"";
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#22c55e;
+}
+.agent-top-more{
+  border:0;
+  background:transparent;
+  color:#94a3b8;
+  font-size:22px;
+  letter-spacing:2px;
+}
+.agent-topbar.inset-break{margin:-22px -24px 6px}
+.work>.agent-topbar~.page{height:calc(100% - 72px)!important}
+.m-meta{display:none!important}
+.agent-message-meta{display:none!important}
+.followup-copy>span{display:none!important}
+.thread .msg-head>b,
+.thread .msg-head>time,
+.thread .gen-title>b{display:none!important}
+.thread .msg-head{height:8px!important;min-height:8px!important}
+.thread .msg-head:has(.gen-title){height:auto!important;min-height:0!important;margin-bottom:6px}
+.thread .gen-title{justify-content:flex-start}
+.msg-meta strong,.msg-meta time{display:none!important}
+.msg-meta{min-height:8px!important;height:8px!important}
+
+/* 用户消息统一使用运营复盘同款蓝色气泡。 */
+.msg.user .m-text,
+.message.user .bubble,
+.user-msg .bubble>p,
+.user-bubble,
+.followup-user .followup-bubble{
+  background:#2563eb!important;
+  border-color:#2563eb!important;
+  color:#fff!important;
+  box-shadow:0 6px 16px rgba(37,99,235,.14);
+}
+.user-bubble .user-head span{color:#dbeafe!important}
+.message.user .mention,
+.user-bubble .mention,
+.followup-user .mention{
+  background:#1d4ed8!important;
+  color:#fff!important;
+}
+
+/* 对齐运营复盘页的 14px 正文 / 12px 辅助文字层级。 */
+.mcn-search{font-size:13px!important}
+.mcn-nav-item{font-size:13px!important}
+.uc-input{font-size:14px!important}
+.uc-example{font-size:14px!important}
+.uc-context,
+.uc-model,
+.uc-mention{font-size:12px!important}
+.m-text,
+.message .bubble,
+.user-bubble,
+.followup-bubble,
+.reply-box textarea,
+.agent-message .card{
+  font-size:14px!important;
+}
+.task-copy b,
+.task-copy strong,
+.signal-copy b,
+.channel strong,
+.source-block h4{
+  font-size:14px!important;
+}
+.task-copy small,
+.task-summary,
+.task-time,
+.signal-copy span,
+.source-line,
+.report-item,
+.channel small,
+.channel b,
+.notice,
+.meta,
+.meta-left,
+.thread-summary,
+.source-clue,
+.chips span{
+  font-size:12px!important;
+}
+.source-line em{font-size:11px!important}
+
+/* 参考运营复盘页：固定一屏，聊天内容内部滚动，收紧垂直节奏。 */
+.agent-topbar{
+  min-height:64px!important;
+  flex-basis:64px!important;
+  padding:0 20px!important;
+}
+.m-text,
+.message .bubble,
+.followup-bubble,
+.user-content,
+.reason,
+.gen-body,
+.reply-box textarea,
+.draft-bubble textarea,
+.editor textarea{
+  line-height:1.65!important;
+}
+.msgs>.msg,
+.thread>.message,
+.followup-thread>.followup-agent,
+.followup-thread>.followup-user{
+  margin-bottom:14px!important;
+}
+
+/* 首页对话：消息区独立滚动，示例与输入框固定在底部。 */
+.chat-main,
+.chat-col{min-height:0!important;overflow-y:auto!important}
+.chat-col{
+  justify-content:flex-start!important;
+  padding:0!important;
+}
+.chat-col>.msgs{
+  width:100%;
+  min-height:0;
+  padding:18px 20px 8px!important;
+  background:transparent;
+}
+.chat-col>.uc-wrap{
+  flex:0 0 auto;
+  padding:8px 16px 16px;
+  background:transparent;
+}
+
+/* 线索洞察、客户问询：固定顶部，只滚动右侧内容。 */
+.app>.main{
+  min-height:0!important;
+  overflow:hidden!important;
+  padding:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+}
+.app>.main>.agent-topbar{
+  flex:0 0 64px!important;
+  margin:0!important;
+}
+.app>.main>.page,
+.app>.main>.stage{
+  width:100%!important;
+  max-width:none!important;
+  min-height:0!important;
+  flex:1 1 auto!important;
+  margin:0!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+}
+.app>.main>.page{padding:16px 22px!important}
+.app>.main>.stage{
+  gap:12px!important;
+  padding:14px 20px 16px!important;
+}
+.app>.main>.uc-sticky{
+  position:relative!important;
+  bottom:auto!important;
+  flex:0 0 auto;
+  padding:8px 20px 16px!important;
+  border-top:1px solid #e2e8f0;
+  background:#fff!important;
+}
+
+/* 线索洞察内容压缩。 */
+.alert-card{padding:16px 20px!important}
+.detect-workflow{margin-top:12px!important}
+.detect-head{padding:12px 16px 10px!important}
+.detect-steps{padding:12px 16px 5px!important}
+.evidence-panel{padding:13px 16px!important}
+.evidence-item{padding-top:10px!important;padding-bottom:10px!important}
+.thread{padding-top:16px!important}
+.thread>.message{gap:10px!important}
+.message .bubble{padding:12px 16px!important}
+.gen-body{
+  max-height:280px!important;
+  padding:10px 18px 14px!important;
+}
+.gen-body h3{margin:2px 0 10px!important}
+.gen-body p{margin:0 0 10px!important}
+.action-bar{padding:10px 14px!important}
+
+/* 新客承接分析卡：正文与操作栏彻底分层，避免按钮压住分析内容。 */
+.gen-card:has(.customer-analysis){
+  max-height:470px;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.gen-card:has(.customer-analysis)>.gen-body{
+  min-height:0;
+  max-height:none!important;
+  flex:1 1 auto;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  padding:14px 18px 16px!important;
+  scrollbar-gutter:stable;
+}
+.gen-card:has(.customer-analysis)>.action-bar{
+  position:relative!important;
+  z-index:2;
+  min-height:64px;
+  flex:0 0 auto;
+  display:grid!important;
+  grid-template-columns:minmax(180px,1fr) auto;
+  align-items:center;
+  gap:12px;
+  padding:10px 14px!important;
+  border-top:1px solid #e2e8f0;
+  background:#fff!important;
+}
+.gen-card:has(.customer-analysis)>.action-bar .meta{
+  min-width:0;
+  line-height:1.5;
+}
+.gen-card:has(.customer-analysis)>.action-bar .actions{
+  min-width:0;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:8px;
+}
+.gen-card:has(.customer-analysis)>.action-bar .btn{
+  flex:0 0 auto;
+  white-space:nowrap;
+}
+
+/* 复盘式新客分析：结论、渠道图、两张小卡、诊断建议。 */
+.analysis-review{padding:0!important}
+.analysis-review .analysis-lead{margin-bottom:10px!important}
+.analysis-review .analysis-lead strong{font-size:18px!important}
+.analysis-review .analysis-overview{
+  margin:0 0 10px!important;
+  color:#475569;
+  font-size:13px;
+  line-height:1.65;
+}
+.analysis-review-chart{
+  height:118px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  align-items:end;
+  gap:18px;
+  margin-bottom:10px;
+  padding:8px 18px 0;
+  border-bottom:1px solid #e2e8f0;
+}
+.analysis-review-chart .review-bar{
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-end;
+  gap:4px;
+  color:#64748b;
+  font-size:11px;
+}
+.analysis-review-chart .review-bar b{
+  color:#334155;
+  font-size:12px;
+}
+.analysis-review-chart .review-bar i{
+  width:min(88px,82%);
+  min-height:28px;
+  display:block;
+  border-radius:5px 5px 0 0;
+}
+.analysis-review-chart .review-bar span{
+  padding-bottom:6px;
+  white-space:nowrap;
+}
+.analysis-review-cards{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:10px;
+}
+.analysis-review .review-result{
+  min-height:64px;
+  display:grid;
+  gap:3px;
+  padding:9px 11px;
+  border:1px solid;
+  border-radius:8px;
+}
+.analysis-review .review-result.good{
+  border-color:#ccebd9;
+  background:#effaf3;
+}
+.analysis-review .review-result.warn{
+  border-color:#f5d3d3;
+  background:#fff4f4;
+}
+.analysis-review .review-result small{
+  font-size:10px;
+  font-weight:700;
+}
+.analysis-review .review-result.good small{color:#168348}
+.analysis-review .review-result.warn small{color:#dc454b}
+.analysis-review .review-result strong{
+  color:#334155;
+  font-size:12px;
+}
+.analysis-review .review-result span{
+  color:#64748b;
+  font-size:11px;
+  line-height:1.45;
+}
+.analysis-diagnosis{
+  display:grid;
+  gap:3px;
+  color:#475569;
+  font-size:12px;
+  line-height:1.55;
+}
+.analysis-diagnosis p{margin:0!important}
+.analysis-diagnosis b{color:#1e293b}
+.analysis-visual-row{
+  min-height:122px;
+  display:grid;
+  grid-template-columns:140px minmax(0,1fr);
+  align-items:center;
+  gap:18px;
+  margin-bottom:10px;
+  padding:9px 14px;
+  border:1px solid #e8edf4;
+  border-radius:10px;
+  background:#fbfdff;
+}
+.analysis-donut{
+  position:relative;
+  width:104px;
+  height:104px;
+  margin:auto;
+  border-radius:50%;
+  background:var(--donut);
+}
+.analysis-donut:after{
+  content:"";
+  position:absolute;
+  inset:20px;
+  border-radius:50%;
+  background:#fff;
+}
+.analysis-donut-center{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  display:grid;
+  place-content:center;
+  color:#1e293b;
+  text-align:center;
+  line-height:1.25;
+}
+.analysis-donut-center b{font-size:15px}
+.analysis-donut-center small{color:#94a3b8;font-size:9px}
+.analysis-legend{display:grid;gap:7px}
+.analysis-legend div{
+  display:grid;
+  grid-template-columns:9px minmax(0,1fr) auto;
+  align-items:center;
+  gap:7px;
+  color:#64748b;
+  font-size:11px;
+}
+.analysis-legend i{width:9px;height:9px;border-radius:3px}
+.analysis-legend b{color:#334155;font-size:11px}
+.analysis-trend{
+  position:relative;
+  height:126px;
+  margin-bottom:10px;
+  overflow:hidden;
+  border:1px solid #e8edf4;
+  border-radius:10px;
+  background:repeating-linear-gradient(to bottom,#fff 0,#fff 28px,#edf2f7 29px);
+}
+.analysis-trend .trend-area{
+  position:absolute;
+  left:28px;
+  right:18px;
+  top:12px;
+  bottom:25px;
+  background:linear-gradient(180deg,rgba(59,130,246,.34),rgba(59,130,246,.04));
+  clip-path:polygon(0 18%,20% 31%,40% 43%,60% 57%,80% 76%,100% 88%,100% 100%,0 100%);
+}
+.analysis-trend .trend-point{
+  position:absolute;
+  width:8px;
+  height:8px;
+  border:2px solid #2563eb;
+  border-radius:50%;
+  background:#fff;
+}
+.analysis-trend .trend-labels{
+  position:absolute;
+  left:24px;
+  right:14px;
+  bottom:5px;
+  display:flex;
+  justify-content:space-between;
+  color:#94a3b8;
+  font-size:9px;
+}
+.analysis-hbars{
+  display:grid;
+  gap:10px;
+  margin-bottom:10px;
+  padding:12px 14px;
+  border:1px solid #e8edf4;
+  border-radius:10px;
+  background:#fbfdff;
+}
+.analysis-hbar{
+  display:grid;
+  grid-template-columns:76px minmax(0,1fr) 48px;
+  align-items:center;
+  gap:9px;
+  color:#64748b;
+  font-size:11px;
+}
+.analysis-hbar span:nth-child(2){height:9px;overflow:hidden;border-radius:5px;background:#e8edf4}
+.analysis-hbar i{display:block;height:100%;border-radius:5px}
+.analysis-hbar b{color:#334155;text-align:right;font-size:11px}
+.analysis-heatmap{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-bottom:10px;
+}
+.analysis-heatmap div{
+  min-height:54px;
+  display:grid;
+  gap:3px;
+  align-content:center;
+  padding:8px 10px;
+  border-radius:8px;
+  color:#475569;
+  font-size:10px;
+}
+.analysis-heatmap b{color:#1e293b;font-size:12px}
+.analysis-heatmap .hot{background:#fee2e2}
+.analysis-heatmap .warm{background:#ffedd5}
+.analysis-heatmap .cool{background:#dbeafe}
+.analysis-heatmap .calm{background:#dcfce7}
+@media(max-width:1400px){
+  .gen-card:has(.customer-analysis)>.action-bar{
+    grid-template-columns:1fr;
+  }
+  .gen-card:has(.customer-analysis)>.action-bar .actions{
+    justify-content:flex-start;
+  }
+}
+@media(max-width:900px){
+  .analysis-review-chart{gap:8px;padding-left:4px;padding-right:4px}
+  .analysis-review-cards{grid-template-columns:1fr}
+  .analysis-visual-row{grid-template-columns:1fr}
+  .analysis-heatmap{grid-template-columns:1fr 1fr}
+}
+
+/* 客户问询内容压缩，大段历史在自己的区域里滚动。 */
+.stage>.agent-message{gap:10px!important}
+.card{
+  gap:12px!important;
+  padding:16px 18px 12px!important;
+}
+.source-clue{margin-bottom:8px!important;padding:8px 11px!important}
+.customer-thread{
+  margin-bottom:10px!important;
+  padding:12px 14px!important;
+}
+.thread-head{margin-bottom:8px!important}
+.customer-message-list{
+  max-height:140px!important;
+  gap:7px!important;
+}
+.customer-line p{
+  padding:8px 11px!important;
+  line-height:1.6!important;
+}
+.thread-summary{margin-top:8px!important;padding-top:8px!important}
+.reply-box{padding:12px 14px!important}
+.reply-box textarea{
+  min-height:120px!important;
+  max-height:150px!important;
+}
+.holding-panel{padding:12px 14px!important}
+#followupConversation{
+  max-height:230px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding-right:4px;
+  scrollbar-gutter:stable;
+}
+.followup-thread{gap:10px!important}
+.followup-bubble{padding:11px 15px!important}
+.stage>.uc-sticky{margin-top:auto}
+
+/* 内容创作：页面内部滚动，编辑区域不过度占高。 */
+.shell>.work{
+  min-height:0!important;
+  overflow:hidden!important;
+}
+.shell>.work>.agent-topbar{flex:0 0 64px!important}
+.shell>.work>.page{
+  height:auto!important;
+  min-height:0!important;
+  flex:1 1 auto!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  padding:16px 22px 170px!important;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+}
+.shell>.work .thread{padding:16px 20px 0!important}
+.shell>.work .message{margin-bottom:14px!important}
+.shell>.work .bubble>p{padding:12px 15px!important;line-height:1.65!important}
+.draft-bubble textarea{height:220px!important}
+.editor textarea{height:380px!important}
+@media(max-width:820px){
+  .agent-topbar{min-height:64px;flex-basis:64px;padding:0 15px}
+  .agent-topbar.inset-break{margin:-16px -16px 6px}
+  .work>.agent-topbar~.page{height:auto!important}
+}
+
+/* 所有问答统一采用复盘页的留白比例：Agent 左侧 80%，用户右侧 70%。 */
+.chat-col>.msgs>.msg:not(.user) .m-body{
+  flex:0 1 80%!important;
+  width:80%;
+  max-width:80%;
+}
+.chat-col>.msgs>.msg.user .m-body{
+  flex:0 1 auto!important;
+  width:fit-content;
+  max-width:70%!important;
+}
+
+.app>.main>.page .thread>.message:not(.user) .msg-wrap{
+  width:min(80%,960px)!important;
+  max-width:80%!important;
+}
+.app>.main>.page .thread>.message.user{
+  padding-left:0!important;
+}
+.app>.main>.page .thread>.message.user .msg-wrap{
+  width:fit-content;
+  max-width:70%!important;
+  justify-self:end;
+}
+.app>.main>.page .thread>#sceneExtraRound>.message:not(.user) .msg-wrap{
+  width:min(80%,960px)!important;
+  max-width:80%!important;
+}
+.app>.main>.page .thread>#sceneExtraRound>.message.user .msg-wrap{
+  width:fit-content!important;
+  max-width:70%!important;
+  justify-self:end;
+}
+
+.stage>.agent-message .agent-message-body{
+  width:min(80%,960px)!important;
+  max-width:80%!important;
+}
+.stage .user-msg .user-bubble{
+  width:fit-content!important;
+  max-width:70%!important;
+}
+.followup-agent .followup-copy{
+  width:min(80%,960px)!important;
+  max-width:80%!important;
+}
+.followup-user .followup-bubble{
+  width:fit-content;
+  max-width:70%!important;
+}
+
+.shell>.work .conversation .message:not(.user-msg)>.bubble{
+  flex:0 1 80%!important;
+  width:80%;
+  max-width:80%;
+}
+.shell>.work .conversation .message.user-msg>.bubble{
+  flex:0 1 auto!important;
+  width:fit-content;
+  max-width:70%!important;
+}
+
+@media(max-width:900px){
+  .chat-col>.msgs>.msg:not(.user) .m-body,
+  .app>.main>.page .thread>.message:not(.user) .msg-wrap,
+  .app>.main>.page .thread>#sceneExtraRound>.message:not(.user) .msg-wrap,
+  .stage>.agent-message .agent-message-body,
+  .followup-agent .followup-copy,
+  .shell>.work .conversation .message:not(.user-msg)>.bubble{
+    width:88%;
+    max-width:88%;
+  }
+  .chat-col>.msgs>.msg.user .m-body,
+  .app>.main>.page .thread>.message.user .msg-wrap,
+  .app>.main>.page .thread>#sceneExtraRound>.message.user .msg-wrap,
+  .stage .user-msg .user-bubble,
+  .followup-user .followup-bubble,
+  .shell>.work .conversation .message.user-msg>.bubble{
+    max-width:82%!important;
+  }
+}

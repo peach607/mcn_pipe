@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>运营数据后台 - 财富圈复盘</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+    body { font-family: 'Inter', 'Noto Sans SC', sans-serif; }
+    .tag-red { background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; }
+    .tag-orange { background: #fff7ed; color: #f97316; border: 1px solid #fed7aa; }
+    .tag-green { background: #f0fdf4; color: #22c55e; border: 1px solid #bbf7d0; }
+    .tag-blue { background: #eff6ff; color: #3b82f6; border: 1px solid #bfdbfe; }
+    .tag-purple { background: #faf5ff; color: #a855f7; border: 1px solid #e9d5ff; }
+    .table-row:hover { background: #fafafa; }
+    .modal-overlay { background: rgba(0,0,0,0.45); backdrop-filter: blur(2px); }
+    .funnel-stage-card { transition: all 0.2s; cursor: pointer; }
+    .funnel-stage-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+    .action-card { transition: all 0.2s; }
+    .action-card:hover { box-shadow: 0 10px 28px rgba(0,0,0,0.08); }
+    .analysis-card { background: linear-gradient(135deg, #fff5f5 0%, #fff 100%); border: 1px solid #fee2e2; }
+    .analysis-card-blue { background: linear-gradient(135deg, #eff6ff 0%, #fff 100%); border: 1px solid #dbeafe; }
+    .analysis-card-green { background: linear-gradient(135deg, #f0fdf4 0%, #fff 100%); border: 1px solid #bbf7d0; }
+    .analysis-card-purple { background: linear-gradient(135deg, #faf5ff 0%, #fff 100%); border: 1px solid #e9d5ff; }
+    .step-line { position: absolute; left: 20px; top: 40px; bottom: 0; width: 2px; background: #e5e7eb; }
+    .step-dot { width: 12px; height: 12px; border-radius: 50%; background: #ef4444; border: 2px solid #fff; box-shadow: 0 0 0 2px #fecaca; }
+    .stat-card { background: linear-gradient(135deg, #eff6ff 0%, #fff 100%); border: 1px solid #dbeafe; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen">
+
+  <!-- Layout -->
+  <div class="flex min-h-screen">
+
+    <!-- Main -->
+    <main class="flex-1 p-6">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">财富圈复盘</h1>
+          <p class="text-sm text-gray-500 mt-1">数据更新时间：2026-07-24 16:45</p>
+        </div>
+        <div class="flex gap-3">
+          <button class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50">导出报表</button>
+          <button class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">刷新数据</button>
+        </div>
+      </div>
+
+      <!-- Section 0: Subscriber Stats -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+        <div class="stat-card rounded-xl p-5 cursor-pointer action-card" onclick="openStatModal('subscribers')">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            </div>
+            <span class="text-sm text-gray-600 font-medium">财富圈订阅人数</span>
+          </div>
+          <div class="text-3xl font-bold text-gray-900">12,860</div>
+          <div class="text-xs text-gray-400 mt-1 flex items-center gap-1">覆盖 4 个财富圈 · 点击查看明细
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </div>
+        </div>
+        <div class="stat-card rounded-xl p-5 cursor-pointer action-card" onclick="openStatModal('newSubs')">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-9 h-9 rounded-lg bg-green-100 flex items-center justify-center text-green-600">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+            </div>
+            <span class="text-sm text-gray-600 font-medium">本周新增订阅数</span>
+          </div>
+          <div class="text-3xl font-bold text-red-600">+342</div>
+          <div class="text-xs text-gray-400 mt-1 flex items-center gap-1">较上周 +18.2% · 点击查看明细
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </div>
+        </div>
+        <div class="stat-card rounded-xl p-5 cursor-pointer action-card" onclick="openStatModal('publish')">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-9 h-9 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+            </div>
+            <span class="text-sm text-gray-600 font-medium">本周长图文发布数</span>
+          </div>
+          <div class="text-3xl font-bold text-gray-900">8</div>
+          <div class="text-xs text-gray-400 mt-1 flex items-center gap-1">日均 1.14 篇 · 点击查看明细
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </div>
+        </div>
+        <div class="stat-card rounded-xl p-5 cursor-pointer action-card" onclick="openStatModal('exposure')">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-9 h-9 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+            </div>
+            <span class="text-sm text-gray-600 font-medium">数据曝光量</span>
+          </div>
+          <div class="text-3xl font-bold text-orange-600">186,420</div>
+          <div class="text-xs text-gray-400 mt-1 flex items-center gap-1">本周累计曝光 · 点击查看明细
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 1: Long Article Data Table -->
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
+        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+          <h2 class="font-bold text-gray-900">本周财富圈长图文数据</h2>
+          <span class="text-xs text-gray-400">按发布时间倒序排列</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600">
+              <tr>
+                <th class="px-4 py-3 text-left font-medium">财富圈名称</th>
+                <th class="px-4 py-3 text-left font-medium">财富圈栏目</th>
+                <th class="px-4 py-3 text-left font-medium">内容ID</th>
+                <th class="px-4 py-3 text-left font-medium">长文标题</th>
+                <th class="px-4 py-3 text-left font-medium">发布时间</th>
+                <th class="px-4 py-3 text-right font-medium">阅读量</th>
+                <th class="px-4 py-3 text-right font-medium">点赞</th>
+                <th class="px-4 py-3 text-right font-medium">评论</th>
+                <th class="px-4 py-3 text-right font-medium">分享</th>
+                <th class="px-4 py-3 text-right font-medium">加微点击数</th>
+              </tr>
+            </thead>
+            <tbody id="articleTableBody" class="divide-y divide-gray-100">
+              <!-- JS generated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Section 2: Operations Analysis -->
+      <div class="mb-6">
+        <h2 class="font-bold text-lg text-gray-900 mb-4">财富圈长图文运营分析</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+          <!-- Content Quality -->
+          <div class="analysis-card rounded-xl p-5">
+            <div class="flex items-center gap-2 mb-4">
+              <div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center text-red-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+              </div>
+              <h3 class="font-bold text-gray-900">内容质量</h3>
+            </div>
+            <div class="bg-white/70 rounded-lg p-4 border border-red-100">
+              <div class="flex items-start gap-3">
+                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">1</span>
+                <div>
+                  <p class="font-medium text-gray-900 mb-1">整体质量与上周基本持平</p>
+                  <p class="text-sm text-gray-600 leading-relaxed">本周 8 篇长图文综合质量评分均值 86.4 分，与上周（86.1 分）基本持平，内容生产稳定性较好，未出现明显质量波动。</p>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white/70 rounded-lg p-4 border border-red-100 mt-3">
+              <div class="flex items-start gap-3">
+                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">2</span>
+                <div>
+                  <p class="font-medium text-gray-900 mb-1">质量最高的长文</p>
+                  <p class="text-sm text-gray-600 leading-relaxed">本周质量最高的是 <span class="font-medium text-gray-900">《资产配置专题：如何用 ETF 构建攻守兼备组合》</span>（内容ID <span class="font-mono text-xs">FC220722</span>），质量评分 94 分。该文逻辑结构清晰、图表配合得当、可读性强，被纳入财富圈优选内容池。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Content Compliance -->
+          <div class="analysis-card-blue rounded-xl p-5">
+            <div class="flex items-center gap-2 mb-4">
+              <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+              </div>
+              <h3 class="font-bold text-gray-900">内容合规</h3>
+            </div>
+            <div class="bg-white/70 rounded-lg p-4 border border-blue-100">
+              <div class="flex items-start gap-3">
+                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center">1</span>
+                <div>
+                  <p class="font-medium text-gray-900 mb-1">过审情况</p>
+                  <p class="text-sm text-gray-600 leading-relaxed">本周 8 篇文章中，<span class="font-medium text-green-700">70%（6 篇）</span> 一次过审，<span class="font-medium text-orange-700">30%（2 篇）</span> 打回修改后通过审核。整体合规通过率处于良好区间。</p>
+                  <div class="mt-3 grid grid-cols-2 gap-2">
+                    <div class="flex justify-between px-3 py-2 rounded bg-green-50 text-xs"><span class="text-gray-600">一次过审</span><span class="font-medium text-green-700">6 篇 / 70%</span></div>
+                    <div class="flex justify-between px-3 py-2 rounded bg-orange-50 text-xs"><span class="text-gray-600">打回后通过</span><span class="font-medium text-orange-700">2 篇 / 30%</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white/70 rounded-lg p-4 border border-blue-100 mt-3">
+              <div class="flex items-start gap-3">
+                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center">2</span>
+                <div>
+                  <p class="font-medium text-gray-900 mb-1">合规风险提示</p>
+                  <p class="text-sm text-gray-600 leading-relaxed">打回文章主要问题集中在 <span class="font-medium text-gray-900">财富圈露出组合产品的适当性要求</span> 上。需注意：组合产品露出时须匹配客户风险等级，并附风险提示与适当性说明，避免对不匹配客群做定向推送。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 内容运营分析（BI 归因风格） -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-5">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center text-red-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+              </div>
+              <h3 class="font-bold text-gray-900">内容运营分析</h3>
+            </div>
+            <span class="text-xs px-3 py-1.5 rounded-full bg-green-50 text-green-600 border border-green-200 font-medium flex items-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+              整体表现：正向健康
+            </span>
+          </div>
+
+          <!-- 原"运营分析报告"内容，直接置于"内容运营分析"下 -->
+          <div class="space-y-3 mb-1">
+            <!-- 1 good -->
+            <div class="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+              <div class="flex items-start gap-3">
+                <span class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0">1</span>
+                <div>
+                  <h5 class="font-semibold text-sm text-gray-900 mb-1">订阅增长与曝光规模双高（做得好）</h5>
+                  <div class="flex flex-wrap gap-2 mb-1.5">
+                    <span class="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">对标自己</span>
+                    <span class="px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-600">对标平台（mock）</span>
+                  </div>
+                  <p class="text-sm text-gray-700 leading-relaxed"><b class="text-gray-500">对标自己：</b>本周新增订阅 +342（较上周 +18.2%）、数据曝光 186,420，整体处于正向健康区间；早盘策略栏目高频发布稳定放大阅读与曝光，形成「阅读↑ → 曝光↑ → 订阅↑」正向循环。</p>
+                  <p class="text-sm text-gray-700 leading-relaxed mt-1"><b class="text-indigo-500">对标平台：</b>新增订阅增速与周曝光规模均高于平台同类财富圈均值（mock：周均新增约 260、曝光约 15 万），内容获客与触达能力领先。</p>
+                </div>
+              </div>
+            </div>
+            <!-- 2 good -->
+            <div class="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+              <div class="flex items-start gap-3">
+                <span class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0">2</span>
+                <div>
+                  <h5 class="font-semibold text-sm text-gray-900 mb-1">内容质量稳定、标杆内容转化突出（做得好）</h5>
+                  <div class="flex flex-wrap gap-2 mb-1.5">
+                    <span class="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">对标自己</span>
+                    <span class="px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-600">对标平台（mock）</span>
+                  </div>
+                  <p class="text-sm text-gray-700 leading-relaxed"><b class="text-gray-500">对标自己：</b>本周 8 篇长图文综合质量评分均值 86.4 分（上周 86.1 分），生产稳定性好；质量最高的《资产配置专题》内置链接点击率 9.8%，远超均值 4.6%，标杆内容转化效应显著。</p>
+                  <p class="text-sm text-gray-700 leading-relaxed mt-1"><b class="text-indigo-500">对标平台：</b>内容质量评分与读完率高于平台同类财富圈均值（mock），观点前置、排版精悍的结构具备差异化优势。</p>
+                </div>
+              </div>
+            </div>
+            <!-- 3 bad -->
+            <div class="rounded-xl border border-red-200 bg-red-50/50 p-4">
+              <div class="flex items-start gap-3">
+                <span class="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold shrink-0">3</span>
+                <div>
+                  <h5 class="font-semibold text-sm text-gray-900 mb-1">跨圈流量结构失衡，长尾内容曝光不足（做得不好）</h5>
+                  <div class="flex flex-wrap gap-2 mb-1.5">
+                    <span class="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">对标自己</span>
+                    <span class="px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-600">对标平台（mock）</span>
+                  </div>
+                  <p class="text-sm text-gray-700 leading-relaxed"><b class="text-gray-500">对标自己：</b>财富先锋圈贡献约 55% 曝光（10.2 万），稳健配置圈、理财小白圈单篇质量高但跨圈曝光偏低，长尾内容触达受限，圈层间流量分布明显失衡。</p>
+                  <p class="text-sm text-gray-700 leading-relaxed mt-1"><b class="text-indigo-500">对标平台：</b>跨圈曝光集中度（头部圈占约 55%）高于平台同类均值（约 45%，mock），长尾圈层分发效率与尾部订阅渗透均落后平台。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 归因分析：单独一个方框 -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-5">
+          <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <span class="w-1.5 h-4 rounded bg-indigo-500"></span> 归因分析
+          </h4>
+          <div class="rounded-xl border border-gray-200 p-4 bg-white">
+            <div class="space-y-4">
+              <div class="flex items-start gap-3">
+                <span class="w-6 h-6 rounded-full bg-indigo-500 text-white flex items-center justify-center text-xs font-bold shrink-0">1</span>
+                <div>
+                  <h5 class="font-semibold text-sm text-gray-900 mb-0.5">栏目节奏</h5>
+                  <p class="text-sm text-gray-700 leading-relaxed">早盘策略栏目本周发布密集且固定在 08:00 通勤时点，契合客户开盘前阅读习惯，单篇平均阅读显著高于其他栏目，是财富先锋圈曝光与新增订阅贡献的主力来源。</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="w-6 h-6 rounded-full bg-indigo-500 text-white flex items-center justify-center text-xs font-bold shrink-0">2</span>
+                <div>
+                  <h5 class="font-semibold text-sm text-gray-900 mb-0.5">内容结构</h5>
+                  <p class="text-sm text-gray-700 leading-relaxed">阅读与链接点击表现最好的文章（如《资产配置专题》）均采用观点前置、要点分条、按钮式引导，便于快速浏览且上下文强相关，自然拉动读完率与内置链接点击（9.8% vs 均值 4.6%）。</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="w-6 h-6 rounded-full bg-indigo-500 text-white flex items-center justify-center text-xs font-bold shrink-0">3</span>
+                <div>
+                  <h5 class="font-semibold text-sm text-gray-900 mb-0.5">发布时点</h5>
+                  <p class="text-sm text-gray-700 leading-relaxed">早盘策略约 08:00 发布浏览最高（3,610），晚间复盘一旦超过 19:00 浏览明显走低（19:30 均值 1,920，降幅约 32%），说明发布时点直接决定初始曝光，需固化时点形成稳定阅读预期。</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="w-6 h-6 rounded-full bg-indigo-500 text-white flex items-center justify-center text-xs font-bold shrink-0">4</span>
+                <div>
+                  <h5 class="font-semibold text-sm text-gray-900 mb-0.5">流量结构</h5>
+                  <p class="text-sm text-gray-700 leading-relaxed">财富先锋圈贡献了主要曝光（约 10.2 万）与新增订阅，而稳健配置圈、理财小白圈单篇质量高但曝光偏低，跨圈推荐与置顶不足导致长尾内容触达受限。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 具体优化建议 -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+          <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <span class="w-1.5 h-4 rounded bg-rose-500"></span> 具体优化建议
+          </h4>
+          <div class="space-y-3">
+            <div class="rounded-xl border border-gray-200 p-4 bg-white">
+              <div class="flex items-start gap-3">
+                <span class="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold shrink-0">1</span>
+                <div>
+                  <div class="flex items-center gap-2 mb-1"><span class="px-2 py-0.5 rounded text-xs font-medium tag-orange">联动</span><h5 class="font-semibold text-sm text-gray-900">建立跨圈互推与置顶机制</h5></div>
+                  <p class="text-sm text-gray-700 leading-relaxed">稳健配置圈、理财小白圈优质长文与财富先锋圈建立内容互推与跨圈置顶，将高质低曝光内容导入主流量入口，拉平圈层间曝光分布，目标将头部圈曝光占比从约 55% 降至 45% 以内。</p>
+                </div>
+              </div>
+            </div>
+            <div class="rounded-xl border border-gray-200 p-4 bg-white">
+              <div class="flex items-start gap-3">
+                <span class="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold shrink-0">2</span>
+                <div>
+                  <div class="flex items-center gap-2 mb-1"><span class="px-2 py-0.5 rounded text-xs font-medium tag-blue">渗透</span><h5 class="font-semibold text-sm text-gray-900">尾部圈层定向引流提升订阅渗透</h5></div>
+                  <p class="text-sm text-gray-700 leading-relaxed">港股研究圈等小圈层通过财富先锋圈入口做定向引流与新人专属栏目，提升尾部圈层订阅渗透；结合「入圈即订阅」钩子，目标将整体订阅渗透率向平台均值（mock）靠拢。</p>
+                </div>
+              </div>
+            </div>
+            <div class="rounded-xl border border-gray-200 p-4 bg-white">
+              <div class="flex items-start gap-3">
+                <span class="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold shrink-0">3</span>
+                <div>
+                  <div class="flex items-center gap-2 mb-1"><span class="px-2 py-0.5 rounded text-xs font-medium tag-purple">分发</span><h5 class="font-semibold text-sm text-gray-900">长尾内容二次分发与精选推荐</h5></div>
+                  <p class="text-sm text-gray-700 leading-relaxed">对高质量低曝光文章（如《资产配置专题》）做二次置顶、精选推荐与站外转发，补足长尾分发；沉淀「观点前置 + 要点分条 + 按钮式引导」模板，提升长尾内容读完率与加微转化。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    <style>.exec-action-card{transition:all .2s}.exec-action-card:hover{box-shadow:0 10px 28px rgba(0,0,0,.08)}.step-line{position:absolute;left:20px;top:40px;bottom:0;width:2px;background:#e5e7eb}.step-dot{width:12px;height:12px;border-radius:50%;background:#ef4444;border:2px solid #fff;box-shadow:0 0 0 2px #fecaca}</style>
+    <!-- 后续可执行动作 -->
+    <section class="exec-actions mb-6 pl-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-bold text-lg text-gray-900">后续可执行动作</h2>
+        <div class="flex items-center gap-3 text-xs">
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500"></span>高优</span>
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-orange-500"></span>中优</span>
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span>低优</span>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        <div class="exec-action-card bg-white rounded-xl border border-gray-200 p-5 relative cursor-pointer" onclick="openActionModalById('wealth-template')">
+          <div class="absolute top-4 right-4"><span class="px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">高优</span></div>
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></div>
+            <span class="text-xs text-gray-400">1</span>
+          </div>
+          <h3 class="font-bold text-gray-900 mb-2">模板化高转化内容公式</h3>
+          <p class="text-xs text-gray-500 leading-relaxed mb-4">把《ETF攻守兼备组合》的「观点前置→数据佐证→可落地方案→风险合规提示→预约转化」公式沉淀为模板，批量复用到财富先锋圈与稳健配置圈下周选题。</p>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-400">点击查看详情</span>
+            <span class="px-3 py-1.5 bg-red-500 text-white text-xs font-medium rounded-lg flex items-center gap-1">去执行<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>
+          </div>
+        </div>
+        <div class="exec-action-card bg-white rounded-xl border border-gray-200 p-5 relative cursor-pointer" onclick="openActionModalById('wealth-cross')">
+          <div class="absolute top-4 right-4"><span class="px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">中优</span></div>
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4"></path></svg></div>
+            <span class="text-xs text-gray-400">2</span>
+          </div>
+          <h3 class="font-bold text-gray-900 mb-2">跨圈互推与置顶机制</h3>
+          <p class="text-xs text-gray-500 leading-relaxed mb-4">建立财富先锋圈与稳健配置圈、理财小白圈的内容互推与跨圈置顶，将高质低曝光长文导入主流量入口，目标头部圈曝光占比从 55% 降至 45% 以内。</p>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-400">点击查看详情</span>
+            <span class="px-3 py-1.5 bg-red-500 text-white text-xs font-medium rounded-lg flex items-center gap-1">去执行<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>
+          </div>
+        </div>
+        <div class="exec-action-card bg-white rounded-xl border border-gray-200 p-5 relative cursor-pointer" onclick="openActionModalById('wealth-risk')">
+          <div class="absolute top-4 right-4"><span class="px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">低优</span></div>
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z"></path></svg></div>
+            <span class="text-xs text-gray-400">3</span>
+          </div>
+          <h3 class="font-bold text-gray-900 mb-2">风险等级匹配前置</h3>
+          <p class="text-xs text-gray-500 leading-relaxed mb-4">组合产品露出统一前置风险等级匹配说明，降低合规打回率至 10% 以内，并把「入圈即订阅」钩子复制到尾部小圈层提升订阅渗透。</p>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-400">点击查看详情</span>
+            <span class="px-3 py-1.5 bg-red-500 text-white text-xs font-medium rounded-lg flex items-center gap-1">去执行<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- 后续可执行动作 工作流弹窗 -->
+    <div id="actionModal" class="fixed inset-0 modal-overlay hidden z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+          <div>
+            <h3 id="actionModalTitle" class="font-bold text-lg text-gray-900">动作详情</h3>
+            <p class="text-xs text-gray-500 mt-0.5">点击下方执行按钮可一键运行完整工作流</p>
+          </div>
+          <button onclick="closeActionModal()" class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        </div>
+        <div class="p-6" id="actionModalBody"></div>
+        <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-gray-50 rounded-b-2xl">
+          <span class="text-xs text-gray-500">执行后将自动完成所有子步骤并生成执行报告</span>
+          <div class="flex gap-3">
+            <button onclick="closeActionModal()" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50">忽略</button>
+            <button onclick="executeAction()" class="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              去执行
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      const actions = [
+        { id: 'wealth-template', title: '模板化高转化内容公式', desc: '把《ETF攻守兼备组合》的「观点前置→数据佐证→可落地方案→风险合规提示→预约转化」公式沉淀为模板，批量复用到财富先锋圈与稳健配置圈下周选题。', priority: 'high', priorityLabel: '高优', color: 'red', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', steps: [
+          { title: '拆解高转化文章结构', content: '提取《资产配置专题》等 TOP 内容的钩子、数据、方案、风险提示、转化入口五段式结构，形成可复用字段。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：五段式内容结构模板（Word/在线文档）</div>' },
+          { title: '生成内容公式模板', content: '将五段式结构固化为编辑器模板，并配置到财富圈内容发布后台的「快速套用」库。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：后台模板 1 个，覆盖长图文/海报/短视频脚本</div>' },
+          { title: '批量应用到下周选题', content: '对财富先锋圈、稳健配置圈下周 8 篇选题套用模板，并自动校验合规话术与风险等级匹配。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：下周选题草稿 8 篇，合规一次性过审率目标 ≥90%</div>' },
+          { title: '预约转化入口配置', content: '在文末嵌入「预约投顾」按钮并设置 UTM 追踪，同步到 CRM 线索池。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：转化入口配置完成，加微转化率目标提升 2pct</div>' }
+        ]},
+        { id: 'wealth-cross', title: '跨圈互推与置顶机制', desc: '建立财富先锋圈与稳健配置圈、理财小白圈的内容互推与跨圈置顶，将高质低曝光长文导入主流量入口。', priority: 'medium', priorityLabel: '中优', color: 'orange', icon: 'M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4', steps: [
+          { title: '识别高质低曝光内容', content: '基于本周阅读/质量评分筛选出长尾圈层（稳健配置圈、理财小白圈）优质长文 ≥5 篇。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：候选内容清单与质量评分表</div>' },
+          { title: '配置跨圈推荐位', content: '在财富先锋圈首页设置「本周精选」模块，定向推荐长尾圈层优质内容。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：推荐位配置上线，展示 5 篇精选内容</div>' },
+          { title: '设置置顶与 Push', content: '对精选内容设置 48h 置顶，并配置定向 Push 给相关圈层活跃用户。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：置顶/Push 任务创建，触达用户约 8,500 人</div>' },
+          { title: '监控曝光分布', content: '跟踪头部圈曝光占比变化，目标从 55% 降至 45%，长尾圈层订阅渗透提升。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：每日曝光分布看板，3 天后复盘效果</div>' }
+        ]},
+        { id: 'wealth-risk', title: '风险等级匹配前置', desc: '组合产品露出统一前置风险等级匹配说明，降低合规打回率至 10% 以内，并把「入圈即订阅」钩子复制到尾部小圈层。', priority: 'low', priorityLabel: '低优', color: 'blue', icon: 'M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z', steps: [
+          { title: '梳理产品露出清单', content: '汇总本周涉及组合产品/投顾服务的文章与钩子，建立产品-风险等级映射表。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：产品露出清单与风险等级映射表</div>' },
+          { title: '前置风险等级匹配', content: '在产品介绍前插入风险测评入口，未测评用户引导先完成测评再阅读组合内容。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：测评入口组件上线，覆盖全部含组合产品的文章</div>' },
+          { title: '更新合规话术库', content: '将标准风险提示话术同步到编辑模板与快捷回复，确保口径统一。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：合规话术库 V2.0，编辑模板自动校验</div>' },
+          { title: '统计打回率变化', content: '对比下周过审率，目标合规打回率 ≤10%，并把「入圈即订阅」钩子复制到尾部小圈层。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：合规周报，尾部小圈层订阅渗透率目标提升 1.5pct</div>' }
+        ]}
+      ];
+      const priorityBadgeClass = { high: 'bg-red-100 text-red-700', medium: 'bg-orange-100 text-orange-700', low: 'bg-blue-100 text-blue-700' };
+      let currentAction = null;
+      function openActionModalById(id) {
+        currentAction = actions.find(a => a.id === id);
+        if (!currentAction) return;
+        document.getElementById('actionModalTitle').textContent = currentAction.title;
+        const body = document.getElementById('actionModalBody');
+        body.innerHTML = currentAction.steps.map((s, i) => `
+          <div class="relative pl-8 pb-6 last:pb-0">
+            <div class="step-line"></div>
+            <div class="absolute left-0 top-1.5 step-dot"></div>
+            <div class="bg-white rounded-lg border border-gray-200 p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-5 h-5 rounded-full bg-gray-100 text-gray-700 text-xs font-bold flex items-center justify-center">${i + 1}</span>
+                <h4 class="font-bold text-gray-900">${s.title}</h4>
+              </div>
+              <p class="text-sm text-gray-600 mb-2">${s.content}</p>
+              ${s.detail}
+            </div>
+          </div>
+        `).join('');
+        document.getElementById('actionModal').classList.remove('hidden');
+      }
+      function closeActionModal() { document.getElementById('actionModal').classList.add('hidden'); currentAction = null; }
+      function executeAction() { alert(`已启动「${currentAction?.title || '动作'}」工作流，执行结果将在完成后推送至消息中心。`); closeActionModal(); }
+      document.getElementById('actionModal').addEventListener('click', (e) => { if (e.target === document.getElementById('actionModal')) closeActionModal(); });
+    </script>
+    </main>
+  </div>
+
+  <!-- Stat Detail Modal -->
+  <div id="statModal" class="fixed inset-0 modal-overlay hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+        <div>
+          <h3 id="statModalTitle" class="font-bold text-lg text-gray-900">明细</h3>
+          <p class="text-xs text-gray-500 mt-0.5">按财富圈拆分明细</p>
+        </div>
+        <button onclick="closeStatModal()" class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="p-6">
+        <div class="overflow-x-auto rounded-lg border border-gray-200">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600">
+              <tr>
+                <th class="px-4 py-3 text-left font-medium">财富圈</th>
+                <th class="px-4 py-3 text-right font-medium">数值</th>
+              </tr>
+            </thead>
+            <tbody id="statModalBody" class="divide-y divide-gray-100 bg-white"></tbody>
+          </table>
+        </div>
+        <div class="mt-4 flex items-center justify-between px-1">
+          <span class="text-sm text-gray-500">合计</span>
+          <span id="statModalTotal" class="text-lg font-bold text-gray-900"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Data: 本周财富圈长图文数据（按发布时间倒序）
+    const articles = [
+      { circle: '财富先锋圈', column: '早盘策略', id: 'FC240712', title: '早盘策略：三大指数集体高开，关注半导体板块机会', time: '2026-07-24 08:12', reads: 3420, likes: 86, comments: 21, shares: 18, addwx: 32 },
+      { circle: '财富先锋圈', column: '晚间复盘', id: 'FC230719', title: '晚间复盘：缩量震荡，资金抱团高股息', time: '2026-07-23 19:30', reads: 1920, likes: 41, comments: 9, shares: 7, addwx: 11 },
+      { circle: '财富先锋圈', column: '早盘策略', id: 'FC230805', title: '早盘策略：北向资金回流，消费电子迎催化', time: '2026-07-23 08:05', reads: 3560, likes: 92, comments: 24, shares: 22, addwx: 37 },
+      { circle: '稳健配置圈', column: '资产配置', id: 'FC220722', title: '资产配置专题：如何用 ETF 构建攻守兼备组合', time: '2026-07-22 20:15', reads: 2980, likes: 134, comments: 38, shares: 51, addwx: 46 },
+      { circle: '财富先锋圈', column: '早盘策略', id: 'FC220810', title: '早盘策略：中报行情启动，业绩主线浮现', time: '2026-07-22 08:10', reads: 3310, likes: 78, comments: 17, shares: 15, addwx: 29 },
+      { circle: '财富先锋圈', column: '晚间复盘', id: 'FC210945', title: '晚间复盘：成交额破万亿，结构性机会凸显', time: '2026-07-21 19:45', reads: 2050, likes: 47, comments: 11, shares: 9, addwx: 13 },
+      { circle: '财富先锋圈', column: '早盘策略', id: 'FC210800', title: '早盘策略：美联储表态偏鸽，成长股受益', time: '2026-07-21 08:00', reads: 3680, likes: 98, comments: 26, shares: 25, addwx: 40 },
+      { circle: '理财小白圈', column: '投教课堂', id: 'FC201430', title: '新手课堂：读懂基金净值与年化收益', time: '2026-07-20 14:30', reads: 1640, likes: 53, comments: 14, shares: 12, addwx: 19 }
+    ];
+
+    // Render article table
+    const articleTableBody = document.getElementById('articleTableBody');
+    articles.forEach(a => {
+      const tr = document.createElement('tr');
+      tr.className = 'table-row border-b border-gray-50 last:border-b-0';
+      // 栏目色系
+      const colClassMap = {
+        '早盘策略': 'tag-red',
+        '晚间复盘': 'tag-orange',
+        '资产配置': 'tag-green',
+        '投教课堂': 'tag-blue'
+      };
+      const colClass = colClassMap[a.column] || 'tag-purple';
+      tr.innerHTML = `
+        <td class="px-4 py-3.5 font-medium text-gray-900">${a.circle}</td>
+        <td class="px-4 py-3.5"><span class="px-2 py-0.5 rounded text-xs font-medium ${colClass}">${a.column}</span></td>
+        <td class="px-4 py-3.5 font-mono text-xs text-gray-500">${a.id}</td>
+        <td class="px-4 py-3.5 text-gray-800 max-w-xs truncate" title="${a.title}">${a.title}</td>
+        <td class="px-4 py-3.5 text-gray-600 whitespace-nowrap">${a.time}</td>
+        <td class="px-4 py-3.5 text-right font-medium">${a.reads.toLocaleString()}</td>
+        <td class="px-4 py-3.5 text-right text-gray-600">${a.likes}</td>
+        <td class="px-4 py-3.5 text-right text-gray-600">${a.comments}</td>
+        <td class="px-4 py-3.5 text-right text-gray-600">${a.shares}</td>
+        <td class="px-4 py-3.5 text-right"><span class="text-blue-600 font-medium">${a.addwx}</span></td>
+      `;
+      articleTableBody.appendChild(tr);
+    });
+
+    // Stat breakdown by wealth circle (for clickable top cards)
+    const statBreakdown = {
+      subscribers: {
+        title: '财富圈订阅人数',
+        unit: ' 人',
+        total: '12,860',
+        rows: [
+          { circle: '财富先锋圈', value: '6,820' },
+          { circle: '稳健配置圈', value: '3,150' },
+          { circle: '理财小白圈', value: '1,980' },
+          { circle: '港股研究圈', value: '910' }
+        ]
+      },
+      newSubs: {
+        title: '本周新增订阅数',
+        unit: ' 人',
+        total: '342',
+        rows: [
+          { circle: '财富先锋圈', value: '168' },
+          { circle: '稳健配置圈', value: '92' },
+          { circle: '理财小白圈', value: '54' },
+          { circle: '港股研究圈', value: '28' }
+        ]
+      },
+      publish: {
+        title: '本周长图文发布数',
+        unit: ' 篇',
+        total: '8',
+        rows: [
+          { circle: '财富先锋圈', value: '5' },
+          { circle: '稳健配置圈', value: '1' },
+          { circle: '理财小白圈', value: '1' },
+          { circle: '港股研究圈', value: '1' }
+        ]
+      },
+      exposure: {
+        title: '数据曝光量',
+        unit: '',
+        total: '186,420',
+        rows: [
+          { circle: '财富先锋圈', value: '102,400' },
+          { circle: '稳健配置圈', value: '38,600' },
+          { circle: '理财小白圈', value: '26,820' },
+          { circle: '港股研究圈', value: '18,600' }
+        ]
+      }
+    };
+
+    function openStatModal(key) {
+      const d = statBreakdown[key];
+      document.getElementById('statModalTitle').textContent = d.title;
+      const tbody = document.getElementById('statModalBody');
+      tbody.innerHTML = '';
+      d.rows.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.className = 'table-row';
+        tr.innerHTML = `
+          <td class="px-4 py-3 font-medium text-gray-900">${r.circle}</td>
+          <td class="px-4 py-3 text-right font-medium">${r.value}${d.unit}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('statModalTotal').textContent = d.total + d.unit;
+      document.getElementById('statModal').classList.remove('hidden');
+    }
+
+    function closeStatModal() {
+      document.getElementById('statModal').classList.add('hidden');
+    }
+
+    document.getElementById('statModal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('statModal')) closeStatModal();
+    });
+  </script>
+</body>
+</html>

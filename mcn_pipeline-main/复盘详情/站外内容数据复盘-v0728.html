@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>运营数据后台 - 站外内容数据复盘</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+    body { font-family: 'Inter', 'Noto Sans SC', sans-serif; }
+    .tag-red { background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; }
+    .tag-orange { background: #fff7ed; color: #f97316; border: 1px solid #fed7aa; }
+    .tag-green { background: #f0fdf4; color: #22c55e; border: 1px solid #bbf7d0; }
+    .tag-blue { background: #eff6ff; color: #3b82f6; border: 1px solid #bfdbfe; }
+    .tag-purple { background: #faf5ff; color: #a855f7; border: 1px solid #e9d5ff; }
+    .tag-pink { background: #fdf2f8; color: #ec4899; border: 1px solid #fbcfe8; }
+    .table-row:hover { background: #fafafa; }
+    .modal-overlay { background: rgba(0,0,0,0.45); backdrop-filter: blur(2px); }
+    .stat-card { background: linear-gradient(135deg, #eff6ff 0%, #fff 100%); border: 1px solid #dbeafe; }
+    .analysis-card { background: linear-gradient(135deg, #fff5f5 0%, #fff 100%); border: 1px solid #fee2e2; }
+    .analysis-card-blue { background: linear-gradient(135deg, #eff6ff 0%, #fff 100%); border: 1px solid #dbeafe; }
+    .analysis-card-purple { background: linear-gradient(135deg, #faf5ff 0%, #fff 100%); border: 1px solid #e9d5ff; }
+    .page-btn { transition: all 0.15s; }
+    .page-btn:hover:not(:disabled) { background: #f3f4f6; }
+    .filter-chip { transition: all 0.15s; }
+    .filter-chip.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen">
+
+  <!-- Layout -->
+  <div class="flex min-h-screen">
+
+    <!-- Main -->
+    <main class="flex-1 p-6">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">站外内容数据复盘</h1>
+          <p class="text-sm text-gray-500 mt-1">数据更新时间：2026-07-24 17:30 · 统计区间：2026-06-25 ~ 2026-07-24（近 30 天）</p>
+        </div>
+        <div class="flex gap-3">
+          <button class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50">导出报表</button>
+          <button class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">刷新数据</button>
+        </div>
+      </div>
+
+      <!-- Section 0: Month Summary Stats -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+        <div class="stat-card rounded-xl p-5 cursor-pointer hover:shadow-lg transition" onclick="openStat('count')">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+            </div>
+            <span class="text-sm text-gray-600 font-medium">本月内容数</span>
+          </div>
+          <div class="text-3xl font-bold text-gray-900" id="sumCount">—</div>
+          <div class="text-xs text-gray-400 mt-1 flex items-center gap-1">覆盖 小红书 / 视频号 / 抖音 · 点击查看明细
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </div>
+        </div>
+        <div class="stat-card rounded-xl p-5 cursor-pointer hover:shadow-lg transition" onclick="openStat('exp')">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-9 h-9 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+            </div>
+            <span class="text-sm text-gray-600 font-medium">月累计次日曝光</span>
+          </div>
+          <div class="text-3xl font-bold text-orange-600" id="sumExp">—</div>
+          <div class="text-xs text-gray-400 mt-1 flex items-center gap-1">近 30 天次日曝光合计 · 点击查看明细
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </div>
+        </div>
+        <div class="stat-card rounded-xl p-5 cursor-pointer hover:shadow-lg transition" onclick="openStat('finish')">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-9 h-9 rounded-lg bg-green-100 flex items-center justify-center text-green-600">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <span class="text-sm text-gray-600 font-medium">平均完播率</span>
+          </div>
+          <div class="text-3xl font-bold text-green-600" id="sumFinish">—</div>
+          <div class="text-xs text-gray-400 mt-1 flex items-center gap-1">全部内容完播率均值 · 点击查看明细
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </div>
+        </div>
+        <div class="stat-card rounded-xl p-5 cursor-pointer hover:shadow-lg transition" onclick="openStat('rate')">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-9 h-9 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+            </div>
+            <span class="text-sm text-gray-600 font-medium">平均互动率</span>
+          </div>
+          <div class="text-3xl font-bold text-purple-600" id="sumRate">—</div>
+          <div class="text-xs text-gray-400 mt-1 flex items-center gap-1">互动量 / 次日曝光 · 点击查看明细
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 1: Off-site Content Data Table -->
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
+        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h2 class="font-bold text-gray-900">站外内容明细数据</h2>
+            <span class="text-xs text-gray-400">按发布时间倒序排列 · 每页 10 条</span>
+          </div>
+          <div class="flex gap-2" id="platformFilter">
+            <button data-pf="all" class="filter-chip active px-3 py-1.5 rounded-lg text-sm border border-gray-200 text-gray-600">全部</button>
+            <button data-pf="小红书" class="filter-chip px-3 py-1.5 rounded-lg text-sm border border-gray-200 text-gray-600">小红书</button>
+            <button data-pf="视频号" class="filter-chip px-3 py-1.5 rounded-lg text-sm border border-gray-200 text-gray-600">视频号</button>
+            <button data-pf="抖音" class="filter-chip px-3 py-1.5 rounded-lg text-sm border border-gray-200 text-gray-600">抖音</button>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm table-fixed">
+            <thead class="bg-gray-50 text-gray-600">
+              <tr>
+                <th class="px-2 py-3 text-left font-medium whitespace-nowrap w-[70px]">平台</th>
+                <th class="px-2 py-3 text-left font-medium whitespace-nowrap w-[90px]">账号定位</th>
+                <th class="px-2 py-3 text-left font-medium whitespace-nowrap w-[85px]">内容主题</th>
+                <th class="px-2 py-3 text-left font-medium whitespace-nowrap w-[150px]">标题</th>
+                <th class="px-2 py-3 text-left font-medium whitespace-nowrap w-[110px]">发布时间</th>
+                <th class="px-2 py-3 text-right font-medium whitespace-nowrap w-[65px]">1h曝光</th>
+                <th class="px-2 py-3 text-right font-medium whitespace-nowrap w-[60px]">1h点击</th>
+                <th class="px-2 py-3 text-right font-medium whitespace-nowrap w-[70px]">次日曝光</th>
+                <th class="px-2 py-3 text-right font-medium whitespace-nowrap w-[70px]">次日点击</th>
+                <th class="px-2 py-3 text-right font-medium whitespace-nowrap w-[50px]">完播率</th>
+                <th class="px-2 py-3 text-right font-medium whitespace-nowrap w-[48px]">点赞</th>
+                <th class="px-2 py-3 text-right font-medium whitespace-nowrap w-[48px]">评论</th>
+                <th class="px-2 py-3 text-right font-medium whitespace-nowrap w-[48px]">关注</th>
+                <th class="px-2 py-3 text-right font-medium whitespace-nowrap w-[48px]">私信</th>
+                <th class="px-2 py-3 text-right font-medium whitespace-nowrap w-[48px]">加微</th>
+                <th class="px-2 py-3 text-right font-medium whitespace-nowrap w-[55px]">互动率</th>
+              </tr>
+            </thead>
+            <tbody id="contentTableBody" class="divide-y divide-gray-100"></tbody>
+          </table>
+        </div>
+        <!-- Pagination -->
+        <div class="px-5 py-4 border-t border-gray-100 flex items-center justify-between flex-wrap gap-3">
+          <div class="text-xs text-gray-500" id="pageInfo">—</div>
+          <div class="flex items-center gap-1" id="pageBtns"></div>
+        </div>
+      </div>
+
+      <!-- Section 2: Operations Analysis (BI 归因版) -->
+      <div class="mb-8">
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+          <div class="flex items-start justify-between mb-5 flex-wrap gap-3">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center text-red-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+              </div>
+              <div>
+                <h2 class="font-bold text-lg text-gray-900">站外内容运营分析</h2>
+                <p class="text-xs text-gray-400 mt-0.5">多维度归因 · 解读数据表现（近 30 天）</p>
+              </div>
+            </div>
+            <span class="text-xs px-3 py-1.5 rounded-full bg-green-50 text-green-600 border border-green-200 font-medium flex items-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+              整体表现：正向健康
+            </span>
+          </div>
+
+          <!-- 运营分析结论 -->
+          <div class="rounded-xl border border-gray-200 bg-white mb-6 overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-2 bg-gray-50/60">
+              <span class="w-1.5 h-4 rounded bg-teal-500"></span>
+              <h3 class="font-semibold text-gray-900">运营分析结论</h3>
+            </div>
+            <div id="reportBox" class="p-5 space-y-3"></div>
+          </div>
+
+          <!-- 归因分析 -->
+          <div class="rounded-xl border border-gray-200 bg-white mb-6 overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-2 bg-gray-50/60">
+              <span class="w-1.5 h-4 rounded bg-indigo-500"></span>
+              <h3 class="font-semibold text-gray-900">归因分析</h3>
+            </div>
+            <div id="attrBox" class="p-5"></div>
+          </div>
+
+          <!-- 具体优化建议 -->
+          <div class="rounded-xl border border-gray-200 bg-white overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-2 bg-gray-50/60">
+              <span class="w-1.5 h-4 rounded bg-rose-500"></span>
+              <h3 class="font-semibold text-gray-900">具体优化建议</h3>
+            </div>
+            <div id="recBox" class="p-5 space-y-3"></div>
+          </div>
+        </div>
+      </div>
+    <style>.exec-action-card{transition:all .2s}.exec-action-card:hover{box-shadow:0 10px 28px rgba(0,0,0,.08)}.step-line{position:absolute;left:20px;top:40px;bottom:0;width:2px;background:#e5e7eb}.step-dot{width:12px;height:12px;border-radius:50%;background:#ef4444;border:2px solid #fff;box-shadow:0 0 0 2px #fecaca}</style>
+    <!-- 后续可执行动作 -->
+    <section class="exec-actions mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-bold text-lg text-gray-900">后续可执行动作</h2>
+        <div class="flex items-center gap-3 text-xs">
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500"></span>高优</span>
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-orange-500"></span>中优</span>
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span>低优</span>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        <div class="exec-action-card bg-white rounded-xl border border-gray-200 p-5 relative cursor-pointer" onclick="openActionModalById('offsite-cover')">
+          <div class="absolute top-4 right-4"><span class="px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">高优</span></div>
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>
+            <span class="text-xs text-gray-400">1</span>
+          </div>
+          <h3 class="font-bold text-gray-900 mb-2">封面 A/B 测试机制</h3>
+          <p class="text-xs text-gray-500 leading-relaxed mb-4">每条内容统一出 3 版封面候选，用 1 小时点击率决定主封面，目标封面点击率提升 20%，重点改造重疾险等模板化封面。</p>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-400">点击查看详情</span>
+            <span class="px-3 py-1.5 bg-red-500 text-white text-xs font-medium rounded-lg flex items-center gap-1">去执行<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>
+          </div>
+        </div>
+        <div class="exec-action-card bg-white rounded-xl border border-gray-200 p-5 relative cursor-pointer" onclick="openActionModalById('offsite-formula')">
+          <div class="absolute top-4 right-4"><span class="px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">中优</span></div>
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>
+            <span class="text-xs text-gray-400">2</span>
+          </div>
+          <h3 class="font-bold text-gray-900 mb-2">高互动公式复用到 ETF/养老</h3>
+          <p class="text-xs text-gray-500 leading-relaxed mb-4">把抖音爆款「数字钩子+情绪共鸣+可落地」结构复用到 ETF 组合与养老理财主题，并在评论区置顶「配置表」领取入口形成转化闭环。</p>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-400">点击查看详情</span>
+            <span class="px-3 py-1.5 bg-red-500 text-white text-xs font-medium rounded-lg flex items-center gap-1">去执行<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>
+          </div>
+        </div>
+        <div class="exec-action-card bg-white rounded-xl border border-gray-200 p-5 relative cursor-pointer" onclick="openActionModalById('offsite-hot')">
+          <div class="absolute top-4 right-4"><span class="px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">低优</span></div>
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+            <span class="text-xs text-gray-400">3</span>
+          </div>
+          <h3 class="font-bold text-gray-900 mb-2">热点时效窗口 SOP</h3>
+          <p class="text-xs text-gray-500 leading-relaxed mb-4">固化热点内容发酵 6 小时内发布流程，结尾统一加入提问式引导，提升整体互动率与完播。</p>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-400">点击查看详情</span>
+            <span class="px-3 py-1.5 bg-red-500 text-white text-xs font-medium rounded-lg flex items-center gap-1">去执行<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- 后续可执行动作 工作流弹窗 -->
+    <div id="actionModal" class="fixed inset-0 modal-overlay hidden z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+          <div>
+            <h3 id="actionModalTitle" class="font-bold text-lg text-gray-900">动作详情</h3>
+            <p class="text-xs text-gray-500 mt-0.5">点击下方执行按钮可一键运行完整工作流</p>
+          </div>
+          <button onclick="closeActionModal()" class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        </div>
+        <div class="p-6" id="actionModalBody"></div>
+        <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-gray-50 rounded-b-2xl">
+          <span class="text-xs text-gray-500">执行后将自动完成所有子步骤并生成执行报告</span>
+          <div class="flex gap-3">
+            <button onclick="closeActionModal()" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50">忽略</button>
+            <button onclick="executeAction()" class="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              去执行
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      const actions = [
+        { id: 'offsite-cover', title: '封面 A/B 测试机制', desc: '每条内容统一出 3 版封面候选，用 1 小时点击率决定主封面，目标封面点击率提升 20%，重点改造重疾险等模板化封面。', priority: 'high', priorityLabel: '高优', color: 'red', icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z', steps: [
+          { title: '建立封面素材库', content: '汇总近 30 天 24 条内容当前封面，按点击率分层（TOP/腰部/待优化），定位模板化严重、点击率偏低的封面。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：封面素材分层库 1 份，标注点击率与对应内容</div>' },
+          { title: '生成 3 版候选', content: '每条内容用「数字钩子+利益点」结构产出 3 版封面，输出主题色/标题字/主视觉的差异对比图。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：每篇 3 版封面候选，含差异说明</div>' },
+          { title: '小流量验证', content: '对重疾险等模板化封面投放 1 小时 A/B，按点击率决定主封面并给出选取建议。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：A/B 实验报告，主封面选取建议</div>' },
+          { title: '固化标准', content: '将胜出版式沉淀为封面模板，目标封面点击率提升 20% 并推广到全站内容。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：封面模板库上线，下周内容套用率 ≥80%</div>' }
+        ]},
+        { id: 'offsite-formula', title: '高互动公式复用到 ETF/养老', desc: '把抖音爆款「数字钩子+情绪共鸣+可落地」结构复用到 ETF 组合与养老理财主题，并在评论区置顶「配置表」领取入口形成转化闭环。', priority: 'medium', priorityLabel: '中优', color: 'orange', icon: 'M13 10V3L4 14h7v7l9-11h-7z', steps: [
+          { title: '拆解爆款公式', content: '提取抖音高互动内容的「数字钩子+情绪共鸣+可落地」结构，形成可复用字段。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：爆款公式拆解卡，含钩子词库与情绪锚点</div>' },
+          { title: '适配 ETF 主题', content: '用组合收益数字钩子重写 ETF 脚本，结尾给出「配置表」领取入口。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：ETF 主题脚本 3 条，配置表领取入口已配置</div>' },
+          { title: '适配养老主题', content: '以养老缺口数字制造共鸣，提供可落地的定投方案并嵌入计算器入口。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：养老主题脚本 3 条，定投计算器入口已嵌入</div>' },
+          { title: '转化闭环', content: '评论区置顶领取入口，追踪 7 日加微/调佣转化并迭代话术。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：转化闭环跑通，7 日加微目标 +15%</div>' }
+        ]},
+        { id: 'offsite-hot', title: '热点时效窗口 SOP', desc: '固化热点内容发酵 6 小时内发布流程，结尾统一加入提问式引导，提升整体互动率与完播。', priority: 'low', priorityLabel: '低优', color: 'blue', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', steps: [
+          { title: '热点监测', content: '监控财经/政策/行情热点，标注发酵起点与可聊角度，建立时效判断。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：热点监测看板，含发酵时间轴与角度建议</div>' },
+          { title: '快速成稿', content: '6 小时内产出观点内容，附数据支撑与合规话术，确保一次性过审。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：热点快讯稿 1 篇，合规一次性过审</div>' },
+          { title: '结尾引导', content: '统一加入提问式引导（如「你怎么看？」）提升互动与完播。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：结尾引导语模板，互动率目标 +10%</div>' },
+          { title: '复盘固化', content: '形成热点 SOP 模板，下次直接套用并计时发布。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：热点 SOP 文档，下次发布周期缩短至 4 小时内</div>' }
+        ]}
+      ];
+      const priorityBadgeClass = { high: 'bg-red-100 text-red-700', medium: 'bg-orange-100 text-orange-700', low: 'bg-blue-100 text-blue-700' };
+      let currentAction = null;
+      function openActionModalById(id) {
+        currentAction = actions.find(a => a.id === id);
+        if (!currentAction) return;
+        document.getElementById('actionModalTitle').textContent = currentAction.title;
+        const body = document.getElementById('actionModalBody');
+        body.innerHTML = currentAction.steps.map((s, i) => `
+          <div class="relative pl-8 pb-6 last:pb-0">
+            <div class="step-line"></div>
+            <div class="absolute left-0 top-1.5 step-dot"></div>
+            <div class="bg-white rounded-lg border border-gray-200 p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-5 h-5 rounded-full bg-gray-100 text-gray-700 text-xs font-bold flex items-center justify-center">${i + 1}</span>
+                <h4 class="font-bold text-gray-900">${s.title}</h4>
+              </div>
+              <p class="text-sm text-gray-600 mb-2">${s.content}</p>
+              ${s.detail}
+            </div>
+          </div>
+        `).join('');
+        document.getElementById('actionModal').classList.remove('hidden');
+      }
+      function closeActionModal() { document.getElementById('actionModal').classList.add('hidden'); currentAction = null; }
+      function executeAction() { alert(`已启动「${currentAction?.title || '动作'}」工作流，执行结果将在完成后推送至消息中心。`); closeActionModal(); }
+      document.getElementById('actionModal').addEventListener('click', (e) => { if (e.target === document.getElementById('actionModal')) closeActionModal(); });
+    </script>
+    </main>
+  </div>
+
+  <!-- Cover Preview Modal -->
+  <div id="coverModal" class="fixed inset-0 modal-overlay hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h3 class="font-bold text-lg text-gray-900">封面预览</h3>
+        <button onclick="closeCover()" class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="p-6 flex flex-col items-center">
+        <div id="coverBig" class="w-40 h-40 rounded-2xl flex items-center justify-center text-6xl mb-4"></div>
+        <p id="coverTitle" class="text-sm font-medium text-gray-900 text-center"></p>
+        <p id="coverNote" class="text-xs text-gray-400 mt-1 text-center"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stat Detail Modal -->
+  <div id="statModal" class="fixed inset-0 modal-overlay hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+        <div>
+          <h3 id="statModalTitle" class="font-bold text-lg text-gray-900">明细</h3>
+          <p class="text-xs text-gray-500 mt-0.5">按平台拆分明细</p>
+        </div>
+        <button onclick="closeStat()" class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="p-6">
+        <div class="overflow-x-auto rounded-lg border border-gray-200">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600">
+              <tr>
+                <th class="px-4 py-3 text-left font-medium">平台</th>
+                <th class="px-4 py-3 text-right font-medium">数值</th>
+                <th class="px-4 py-3 text-right font-medium">占比 / 样本</th>
+              </tr>
+            </thead>
+            <tbody id="statModalBody" class="divide-y divide-gray-100 bg-white"></tbody>
+          </table>
+        </div>
+        <div class="mt-4 flex items-center justify-between px-1">
+          <span class="text-sm text-gray-500">合计</span>
+          <span id="statModalTotal" class="text-lg font-bold text-gray-900"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============ 数据：近 30 天站外内容（按发布时间倒序） ============
+    const RAW = [
+      { platform:'小红书', account:'投教达人', theme:'通胀应对', title:'工资跑不赢通胀？3个让钱生钱的小习惯', cover:'💡', coverWeak:false, hook:'你上个月工资，到今天还剩多少？', time:'2026-07-24 12:30', exp1h:18500, clk1h:2100, expNext:45000, clkNext:5200, finish:38, likes:1200, comments:180, follows:95, dms:40, addwx:85 },
+      { platform:'视频号', account:'财富管理顾问', theme:'早盘策略', title:'开盘前必看的3个信号', cover:'📡', coverWeak:false, hook:'明天开盘，这3个信号决定你仓位', time:'2026-07-24 19:20', exp1h:12000, clk1h:1400, expNext:33000, clkNext:3800, finish:30, likes:520, comments:60, follows:30, dms:12, addwx:28 },
+      { platform:'视频号', account:'财富管理顾问', theme:'基金定投', title:'定投亏了要不要停？看懂这1张图就明白了', cover:'📈', coverWeak:false, hook:'定投亏20%还在坚持的人，后来都怎么样了？', time:'2026-07-23 19:10', exp1h:16000, clk1h:1900, expNext:38000, clkNext:4500, finish:42, likes:980, comments:140, follows:88, dms:32, addwx:72 },
+      { platform:'小红书', account:'理财科普官', theme:'黄金投资', title:'金价还会涨吗？普通人现在能上车吗', cover:'🪙', coverWeak:false, hook:'金价新高，现在追还是等？', time:'2026-07-23 12:40', exp1h:14000, clk1h:1600, expNext:41000, clkNext:4700, finish:33, likes:760, comments:95, follows:50, dms:20, addwx:38 },
+      { platform:'抖音', account:'财经观察员', theme:'资产配置', title:'普通人如何用10万搭一个不慌的组合', cover:'💰', coverWeak:false, hook:'手里10万块，放银行还是买基金？', time:'2026-07-22 20:45', exp1h:22000, clk1h:2600, expNext:52000, clkNext:6100, finish:35, likes:1400, comments:210, follows:110, dms:45, addwx:95 },
+      { platform:'抖音', account:'财经观察员', theme:'防坑指南', title:'这4种理财坑，90%的人都踩过', cover:'⚠️', coverWeak:false, hook:'你以为在理财，其实在被割', time:'2026-07-22 18:30', exp1h:17000, clk1h:2000, expNext:47000, clkNext:5400, finish:31, likes:980, comments:130, follows:70, dms:25, addwx:50 },
+      { platform:'视频号', account:'财富管理顾问', theme:'退休规划', title:'35岁开始养老，每月存多少才够', cover:'🏖️', coverWeak:false, hook:'35岁不规划，65岁靠谁？', time:'2026-07-21 20:10', exp1h:9000, clk1h:1000, expNext:26000, clkNext:2900, finish:28, likes:430, comments:45, follows:22, dms:9, addwx:18 },
+      { platform:'小红书', account:'投教达人', theme:'保险科普', title:'重疾险到底要不要买？一篇讲清楚', cover:'📄', coverWeak:true, hook:'保险销售不会告诉你的3件事', time:'2026-07-21 12:15', exp1h:7000, clk1h:520, expNext:28000, clkNext:1500, finish:22, likes:260, comments:18, follows:14, dms:3, addwx:9 },
+      { platform:'小红书', account:'理财科普官', theme:'基金定投', title:'基金定投第100期，我的真实收益', cover:'📊', coverWeak:false, hook:'定投100期，赚了还是亏了？', time:'2026-07-20 12:20', exp1h:11000, clk1h:1300, expNext:36000, clkNext:4100, finish:34, likes:690, comments:80, follows:42, dms:15, addwx:33 },
+      { platform:'抖音', account:'财经观察员', theme:'副业增收', title:'下班后这3个副业，比加班划算', cover:'💼', coverWeak:false, hook:'工资5k，如何多赚3k？', time:'2026-07-19 19:40', exp1h:15000, clk1h:1700, expNext:44000, clkNext:5000, finish:29, likes:880, comments:110, follows:60, dms:22, addwx:46 },
+      { platform:'视频号', account:'财富管理顾问', theme:'热点解读', title:'某龙头业绩暴雷，对散户意味着什么', cover:'⚠️', coverWeak:false, hook:'昨天那条大新闻，你真的看懂了吗？', time:'2026-07-18 21:30', exp1h:9000, clk1h:700, expNext:62000, clkNext:3200, finish:18, likes:180, comments:12, follows:8, dms:2, addwx:6 },
+      { platform:'小红书', account:'理财科普官', theme:'财报解读', title:'教你30秒看懂一家公司的财报', cover:'🔍', coverWeak:false, hook:'财报里藏着赚钱的秘密', time:'2026-07-17 12:50', exp1h:10000, clk1h:1150, expNext:31000, clkNext:3500, finish:32, likes:600, comments:70, follows:38, dms:14, addwx:26 },
+      { platform:'视频号', account:'财富管理顾问', theme:'资产配置', title:'为什么你的组合总在坐过山车', cover:'🎢', coverWeak:false, hook:'涨也慌跌也慌？问题出在配置', time:'2026-07-15 20:30', exp1h:8500, clk1h:950, expNext:24000, clkNext:2700, finish:27, likes:400, comments:40, follows:20, dms:8, addwx:16 },
+      { platform:'抖音', account:'财经观察员', theme:'通胀应对', title:'钱越来越毛，普通人怎么保住购买力', cover:'💸', coverWeak:false, hook:'10年前的100块，现在值多少？', time:'2026-07-14 18:50', exp1h:13000, clk1h:1500, expNext:39000, clkNext:4400, finish:30, likes:820, comments:100, follows:55, dms:20, addwx:40 },
+      { platform:'小红书', account:'投教达人', theme:'保险科普', title:'年金险和增额寿，到底选哪个', cover:'📑', coverWeak:false, hook:'同样存钱，差别竟然这么大', time:'2026-07-13 12:10', exp1h:9000, clk1h:1000, expNext:28000, clkNext:3100, finish:26, likes:480, comments:52, follows:28, dms:10, addwx:20 },
+      { platform:'视频号', account:'财富管理顾问', theme:'早盘策略', title:'周末重磅，周一怎么走？', cover:'📡', coverWeak:false, hook:'周末出了大事，周一盯紧这2点', time:'2026-07-12 19:15', exp1h:11000, clk1h:1250, expNext:34000, clkNext:3850, finish:29, likes:560, comments:58, follows:30, dms:11, addwx:24 },
+      { platform:'抖音', account:'财经观察员', theme:'防坑指南', title:'银行理财不再保本，钱放哪才安全', cover:'🛡️', coverWeak:false, hook:'保本时代结束，你的钱还安全吗？', time:'2026-07-11 20:00', exp1h:14000, clk1h:1600, expNext:42000, clkNext:4800, finish:28, likes:900, comments:105, follows:58, dms:21, addwx:44 },
+      { platform:'小红书', account:'理财科普官', theme:'基金定投', title:'定投止盈的3个信号，别等跌了才卖', cover:'🚦', coverWeak:false, hook:'赚到多少该落袋？看这3个信号', time:'2026-07-10 12:30', exp1h:10500, clk1h:1200, expNext:33000, clkNext:3700, finish:33, likes:650, comments:75, follows:40, dms:13, addwx:30 },
+      { platform:'视频号', account:'财富管理顾问', theme:'黄金投资', title:'央行都在买黄金，普通人跟不跟', cover:'🪙', coverWeak:false, hook:'央行连续增持，信号很明显了', time:'2026-07-09 18:40', exp1h:8000, clk1h:900, expNext:23000, clkNext:2600, finish:26, likes:380, comments:38, follows:19, dms:7, addwx:15 },
+      { platform:'小红书', account:'投教达人', theme:'财报解读', title:'白酒板块还能不能拿？看这3个指标', cover:'🍷', coverWeak:false, hook:'白酒跌了，是黄金坑还是陷阱？', time:'2026-07-08 12:00', exp1h:9500, clk1h:1080, expNext:30000, clkNext:3400, finish:31, likes:580, comments:66, follows:36, dms:12, addwx:25 },
+      { platform:'抖音', account:'财经观察员', theme:'退休规划', title:'月薪8k，如何50岁提前退休', cover:'🌅', coverWeak:false, hook:'不想卷了？这套路径可以抄', time:'2026-07-07 19:50', exp1h:12500, clk1h:1450, expNext:38000, clkNext:4300, finish:30, likes:840, comments:98, follows:53, dms:19, addwx:42 },
+      { platform:'小红书', account:'理财科普官', theme:'副业增收', title:'理财博主是怎么赚到第一桶金的', cover:'💡', coverWeak:false, hook:'靠理财养活自己，真的可行吗？', time:'2026-07-06 12:45', exp1h:8800, clk1h:980, expNext:27000, clkNext:3000, finish:27, likes:470, comments:50, follows:26, dms:9, addwx:19 },
+      { platform:'视频号', account:'财富管理顾问', theme:'防坑指南', title:'这5个保险套路，签单前一定要看', cover:'⚠️', coverWeak:false, hook:'保险员不会主动说的坑', time:'2026-07-04 18:20', exp1h:7600, clk1h:840, expNext:22000, clkNext:2400, finish:25, likes:360, comments:34, follows:17, dms:6, addwx:14 },
+      { platform:'小红书', account:'投教达人', theme:'通胀应对', title:'工资不涨物价涨，钱该往哪放', cover:'📈', coverWeak:false, hook:'同样的钱，明年还值这么多吗？', time:'2026-07-02 12:15', exp1h:8200, clk1h:920, expNext:25000, clkNext:2800, finish:28, likes:500, comments:55, follows:30, dms:10, addwx:22 }
+    ];
+
+    // 计算互动量与互动率
+    RAW.forEach(d => {
+      d.interact = d.likes + d.comments + d.follows + d.dms + d.addwx;
+      d.rate = d.expNext > 0 ? (d.interact / d.expNext * 100) : 0;
+    });
+
+    // ============ 顶部汇总 ============
+    const sumCount = RAW.length;
+    const sumExp = RAW.reduce((s,d)=>s+d.expNext,0);
+    const sumFinish = (RAW.reduce((s,d)=>s+d.finish,0)/RAW.length).toFixed(1);
+    const sumRate = (RAW.reduce((s,d)=>s+d.interact,0)/sumExp*100).toFixed(2);
+    document.getElementById('sumCount').textContent = sumCount;
+    document.getElementById('sumExp').textContent = sumExp.toLocaleString();
+    document.getElementById('sumFinish').textContent = sumFinish + '%';
+    document.getElementById('sumRate').textContent = sumRate + '%';
+
+    // ============ 顶部卡片点击明细（按平台拆分） ============
+    const PLATFORMS = ['小红书', '视频号', '抖音'];
+    const pfCount = {};
+    PLATFORMS.forEach(p => { pfCount[p] = RAW.filter(d => d.platform === p).length; });
+    const statBreakdown = {
+      count: {
+        title: '本月内容数', unit: ' 篇',
+        rows: PLATFORMS.map(p => ({ platform: p, value: pfCount[p], share: (pfCount[p] / sumCount * 100).toFixed(1) + '%' })),
+        total: sumCount
+      },
+      exp: {
+        title: '月累计次日曝光', unit: '',
+        rows: PLATFORMS.map(p => {
+          const v = RAW.filter(d => d.platform === p).reduce((s, d) => s + d.expNext, 0);
+          return { platform: p, value: v, share: (v / sumExp * 100).toFixed(1) + '%' };
+        }),
+        total: sumExp
+      },
+      finish: {
+        title: '平均完播率', unit: '%',
+        rows: PLATFORMS.map(p => {
+          const a = RAW.filter(d => d.platform === p);
+          const v = +(a.reduce((s, d) => s + d.finish, 0) / a.length).toFixed(1);
+          return { platform: p, value: v, share: pfCount[p] + ' 篇' };
+        }),
+        total: +(sumFinish)
+      },
+      rate: {
+        title: '平均互动率', unit: '%',
+        rows: PLATFORMS.map(p => {
+          const a = RAW.filter(d => d.platform === p);
+          const it = a.reduce((s, d) => s + d.interact, 0);
+          const ex = a.reduce((s, d) => s + d.expNext, 0);
+          const v = +(it / ex * 100).toFixed(2);
+          return { platform: p, value: v, share: pfCount[p] + ' 篇' };
+        }),
+        total: +(sumRate)
+      }
+    };
+
+    function openStat(key) {
+      const d = statBreakdown[key];
+      document.getElementById('statModalTitle').textContent = d.title;
+      const tbody = document.getElementById('statModalBody');
+      tbody.innerHTML = '';
+      d.rows.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.className = 'table-row';
+        tr.innerHTML = `
+          <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-xs font-medium ${pfClass[r.platform] || 'tag-purple'}">${r.platform}</span></td>
+          <td class="px-4 py-3 text-right font-medium">${(typeof r.value === 'number' ? r.value.toLocaleString() : r.value) + d.unit}</td>
+          <td class="px-4 py-3 text-right text-gray-500">${r.share}</td>`;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('statModalTotal').textContent = (typeof d.total === 'number' ? d.total.toLocaleString() : d.total) + d.unit;
+      document.getElementById('statModal').classList.remove('hidden');
+    }
+    function closeStat() { document.getElementById('statModal').classList.add('hidden'); }
+    document.getElementById('statModal').addEventListener('click', e => {
+      if (e.target === document.getElementById('statModal')) closeStat();
+    });
+
+    // ============ 平台色系 ============
+    const pfClass = { '小红书':'tag-pink', '视频号':'tag-green', '抖音':'tag-blue' };
+    const themeClass = { '通胀应对':'tag-orange', '早盘策略':'tag-red', '基金定投':'tag-green', '黄金投资':'tag-purple', '资产配置':'tag-blue', '防坑指南':'tag-red', '退休规划':'tag-purple', '保险科普':'tag-blue', '财报解读':'tag-orange', '副业增收':'tag-green', '热点解读':'tag-red' };
+
+    // ============ 分页 + 筛选 ============
+    const PER_PAGE = 10;
+    let currentPage = 1;
+    let currentFilter = 'all';
+
+    function getFiltered() {
+      return currentFilter === 'all' ? RAW : RAW.filter(d => d.platform === currentFilter);
+    }
+
+    function renderTable() {
+      const data = getFiltered();
+      const total = data.length;
+      const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+      if (currentPage > totalPages) currentPage = totalPages;
+      const start = (currentPage - 1) * PER_PAGE;
+      const pageItems = data.slice(start, start + PER_PAGE);
+
+      const tbody = document.getElementById('contentTableBody');
+      tbody.innerHTML = '';
+      pageItems.forEach(d => {
+        const tr = document.createElement('tr');
+        tr.className = 'table-row';
+        const coverCls = d.coverWeak ? 'bg-gray-200 text-gray-400' : 'bg-gradient-to-br from-blue-50 to-purple-50 text-xl';
+        const weakTag = d.coverWeak ? '<span class="text-[9px] text-gray-400 block mt-0.5">封面弱</span>' : '';
+        const rateCls = d.rate >= 3 ? 'text-green-600 font-bold' : (d.rate < 1 ? 'text-red-500 font-bold' : 'text-gray-700 font-medium');
+        tr.innerHTML = `
+          <td class="px-2 py-3.5"><span class="px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap ${pfClass[d.platform]||'tag-purple'}">${d.platform}</span></td>
+          <td class="px-2 py-3.5 text-gray-700 whitespace-nowrap">${d.account}</td>
+          <td class="px-2 py-3.5"><span class="px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap ${themeClass[d.theme]||'tag-purple'}">${d.theme}</span></td>
+          <td class="px-2 py-3.5 text-gray-900 max-w-[150px] truncate" title="${d.title}">${d.title}</td>
+          <td class="px-2 py-3.5 text-gray-600 whitespace-nowrap">${d.time}</td>
+          <td class="px-2 py-3.5 text-right text-gray-700">${d.exp1h.toLocaleString()}</td>
+          <td class="px-2 py-3.5 text-right text-gray-700">${d.clk1h.toLocaleString()}</td>
+          <td class="px-2 py-3.5 text-right text-gray-700">${d.expNext.toLocaleString()}</td>
+          <td class="px-2 py-3.5 text-right text-gray-700">${d.clkNext.toLocaleString()}</td>
+          <td class="px-2 py-3.5 text-right text-gray-700">${d.finish}%</td>
+          <td class="px-2 py-3.5 text-right text-gray-700">${d.likes}</td>
+          <td class="px-2 py-3.5 text-right text-gray-700">${d.comments}</td>
+          <td class="px-2 py-3.5 text-right text-gray-700">${d.follows}</td>
+          <td class="px-2 py-3.5 text-right text-gray-700">${d.dms}</td>
+          <td class="px-2 py-3.5 text-right"><span class="text-blue-600 font-medium">${d.addwx}</span></td>
+          <td class="px-2 py-3.5 text-right ${rateCls}">${d.rate.toFixed(2)}%</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // page info
+      document.getElementById('pageInfo').textContent =
+        `共 ${total} 条 · 第 ${currentPage} / ${totalPages} 页 · 本页 ${pageItems.length} 条`;
+
+      // page buttons
+      const pb = document.getElementById('pageBtns');
+      pb.innerHTML = '';
+      const mk = (label, page, opts={}) => {
+        const b = document.createElement('button');
+        b.className = 'page-btn px-3 py-1.5 rounded-lg text-sm border border-gray-200 text-gray-600' + (opts.active ? ' bg-blue-600 text-white border-blue-600' : '');
+        b.textContent = label;
+        b.disabled = !!opts.disabled;
+        if (opts.disabled) b.classList.add('opacity-40','cursor-not-allowed');
+        b.onclick = () => { if(!opts.disabled){ currentPage = page; renderTable(); } };
+        pb.appendChild(b);
+      };
+      mk('上一页', currentPage-1, {disabled: currentPage===1});
+      for (let i=1;i<=totalPages;i++) mk(String(i), i, {active: i===currentPage});
+      mk('下一页', currentPage+1, {disabled: currentPage===totalPages});
+    }
+
+    // 平台筛选
+    document.getElementById('platformFilter').addEventListener('click', e => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      currentFilter = btn.dataset.pf;
+      document.querySelectorAll('#platformFilter .filter-chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      currentPage = 1;
+      renderTable();
+    });
+
+    // ============ 封面预览 ============
+    function openCover(title, emoji, weak, platform) {
+      const big = document.getElementById('coverBig');
+      big.textContent = emoji;
+      big.className = 'w-40 h-40 rounded-2xl flex items-center justify-center text-6xl mb-4 ' +
+        (weak === 'true' ? 'bg-gray-200 text-gray-400' : 'bg-gradient-to-br from-blue-50 to-purple-50');
+      document.getElementById('coverTitle').textContent = title;
+      document.getElementById('coverNote').textContent =
+        (weak === 'true' ? '⚠️ 该封面为模板化配图，视觉反差弱、点击率偏低' : platform + ' · 封面预览');
+      document.getElementById('coverModal').classList.remove('hidden');
+    }
+    function closeCover() { document.getElementById('coverModal').classList.add('hidden'); }
+    document.getElementById('coverModal').addEventListener('click', e => {
+      if (e.target === document.getElementById('coverModal')) closeCover();
+    });
+
+    // ============ 运营分析（BI 归因版） ============
+    (function(){
+      const overallRate = RAW.reduce((s,d)=>s+d.interact,0)/sumExp*100;
+      const avgFinish = RAW.reduce((s,d)=>s+d.finish,0)/RAW.length;
+      const avgExpNext = sumExp/RAW.length;
+      const avgAddwx = RAW.reduce((s,d)=>s+d.addwx,0)/RAW.length;
+      const lowFinish = RAW.filter(d=>d.finish<25);
+
+      // 平台聚合
+      const pfMap = {};
+      RAW.forEach(d=>{ (pfMap[d.platform]=pfMap[d.platform]||[]).push(d); });
+      const pf = Object.entries(pfMap).map(([k,arr])=>({
+        k, n:arr.length,
+        rate: arr.reduce((s,d)=>s+d.interact,0)/arr.reduce((s,d)=>s+d.expNext,0)*100,
+        finish: arr.reduce((s,d)=>s+d.finish,0)/arr.length,
+        addwx: arr.reduce((s,d)=>s+d.addwx,0)/arr.length
+      })).sort((a,b)=>b.rate-a.rate);
+      const topPf = pf[0], weakPf = pf[pf.length-1];
+
+      // 题材聚合
+      const thMap = {};
+      RAW.forEach(d=>{ (thMap[d.theme]=thMap[d.theme]||[]).push(d); });
+      const th = Object.entries(thMap).map(([k,arr])=>({
+        k, n:arr.length,
+        rate: arr.reduce((s,d)=>s+d.interact,0)/arr.reduce((s,d)=>s+d.expNext,0)*100
+      })).sort((a,b)=>b.rate-a.rate);
+      const topTheme = th[0];
+
+      // 弱封面
+      const weak = RAW.find(d=>d.coverWeak);
+      const weakRate = weak.interact/weak.expNext*100;
+
+      // 平台基准（mock，示例数据，请替换为真实值）
+      const BENCH = { rate: 2.10, finish: 30, expNext: 35000, addwx: 30 };
+
+      // ===== 运营分析报告（1/2 好，3 不好；含对标自己 / 对标平台） =====
+      document.getElementById('reportBox').innerHTML = [
+        reportPoint('1','good','内容互动与曝光规模双高（做得好）', {
+          self: '本月 '+RAW.length+' 条内容平均互动率 <b class="text-emerald-600">'+overallRate.toFixed(2)+'%</b>、平均完播率 '+avgFinish.toFixed(1)+'%、单条平均次日曝光 '+Math.round(avgExpNext).toLocaleString()+'，整体处于正向健康区间；'+topPf.k+' 单位互动效率最高（'+topPf.rate.toFixed(2)+'%），'+topTheme.k+' 等常青题材贡献最高单位互动，完播→推荐→曝光→互动的增长飞轮已跑通。',
+          platform: '平均互动率 '+overallRate.toFixed(2)+'% 高于平台同类账号均值 '+BENCH.rate.toFixed(2)+'%（mock）；单条平均次日曝光约 '+(avgExpNext/10000).toFixed(1)+' 万、平均加微约 '+avgAddwx.toFixed(0)+' 人，均高于平台同类账号均值，内容获客能力领先。'
+        }),
+        reportPoint('2','good','强钩子 + 强封面标准化打法已验证（做得好）', {
+          self: '强视觉反差封面内容的互动率显著高于弱封面内容（弱封面《'+weak.title+'》仅 '+weakRate.toFixed(2)+'%，其余多在 2% 以上）；钩子模板化（痛点+反差）后开头停留与完播提升，标准化打法可复制、可放量。',
+          platform: '钩子 / 封面标准化程度领先平台，是差异化的核心优势；平台多数同类账号仍以平铺陈述式开头为主，缺乏强反差设计，我方在点击与停留上更占优。'
+        }),
+        reportPoint('3','bad','完播率与部分平台 / 题材效率偏低（做得不好）', {
+          self: '平均完播率 '+avgFinish.toFixed(1)+'% 低于优质内容（>35%）水位，'+lowFinish.length+' 条内容完播率低于 25%；'+weakPf.k+' 受单条热点迟发内容拖累整体被拉低，热点解读类题材互动大幅回落，弱封面内容仍是明显短板。',
+          platform: '平均完播率 '+avgFinish.toFixed(1)+'% 低于平台均值 '+BENCH.finish+'%（mock）；热点解读 / 弱封面内容跑输平台，说明在「质」与「结构」上仍有提升空间。'
+        })
+      ].join('');
+
+      // ===== 归因分析（合并为一个方框，1-3 分点） =====
+      document.getElementById('attrBox').innerHTML = [
+        attrPoint('1','封面策略','','强视觉反差的封面是互动率的基础盘。当前唯一采用模板化配图、缺少文字标题与反差的内容互动明显落后；其余内容均具备大字标题、数据对比图或结果前置的强反差封面，在信息流中点击率突出，进而拉动系统推荐。'),
+        attrPoint('2','选题内容','','切中当下高频议题的选题单位互动效率最高。通胀应对、资产配置、基金定投这类与用户钱袋子强相关的常青题材持续表现好；而热点解读类内容因发布时机与事件发酵窗口错开，时效性被稀释，互动大幅回落。'),
+        attrPoint('3','播放平台','','抖音凭借更轻松的泛财经表达与更强的完播表现，单位互动效率领先；小红书靠午间场景稳定触达居中；视频号受单条热点迟发内容拖累整体被拉低，但其早盘策略、基金定投等题材仍具潜力。')
+      ].join('');
+
+      // ===== 具体优化建议（只针对第 3 点"做得不好"） =====
+      document.getElementById('recBox').innerHTML = [
+        recPoint('1','red','提升完播率（开头 3 秒优化）','对完播率低于 25% 的 '+lowFinish.length+' 条内容做开头重写，强制「第二人称痛点 + 数字/结果前置」前 3 秒钩子；建立完播率周度看板，目标将平均完播率从 '+avgFinish.toFixed(1)+'% 提升至 32% 以上。'),
+        recPoint('2','orange','视频号与热点题材补救','视频号热点解读类改为「提前布局 + 事件前瞻」而非事后解读，避开迟发窗口；将其早盘策略、基金定投等优势题材的固定频次提升，拉回整体单位互动。'),
+        recPoint('3','purple','弱封面内容整改','统一「大字标题 + 数据对比图 + 高反差配色」三要素，优先重做弱封面内容（如《'+weak.title+'》这类模板化配图），目标将弱封面互动率从 '+weakRate.toFixed(2)+'% 抬升至站内均值以上。')
+      ].join('');
+
+      // ---- 渲染辅助 ----
+      function reportPoint(num, type, title, dims){
+        const badge = type==='good' ? 'bg-emerald-500' : 'bg-red-500';
+        const boxCls = type==='good' ? 'border-emerald-200 bg-emerald-50/50' : 'border-red-200 bg-red-50/50';
+        return '<div class="rounded-xl border '+boxCls+' p-4">'
+          + '<div class="flex items-start gap-3">'
+          + '<span class="w-6 h-6 rounded-full '+badge+' text-white flex items-center justify-center text-xs font-bold shrink-0">'+num+'</span>'
+          + '<div>'
+          + '<h5 class="font-semibold text-sm text-gray-900 mb-1">'+title+'</h5>'
+          + '<div class="flex flex-wrap gap-2 mb-1.5">'
+          + '<span class="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">对标自己</span>'
+          + '<span class="px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-600">对标平台（mock）</span>'
+          + '</div>'
+          + '<p class="text-sm text-gray-700 leading-relaxed"><b class="text-gray-500">对标自己：</b>'+dims.self+'</p>'
+          + '<p class="text-sm text-gray-700 leading-relaxed mt-1"><b class="text-indigo-500">对标平台：</b>'+dims.platform+'</p>'
+          + '</div></div></div>';
+      }
+      function attrPoint(num, title, sub, reason){
+        const subHtml = sub ? ' <span class="text-xs text-gray-400 font-normal">· '+sub+'</span>' : '';
+        return '<div class="flex items-start gap-3 py-3 border-b border-gray-100 last:border-0">'
+          + '<span class="w-6 h-6 rounded-full bg-indigo-500 text-white flex items-center justify-center text-xs font-bold shrink-0">'+num+'</span>'
+          + '<div>'
+          + '<h5 class="font-semibold text-sm text-gray-900 mb-0.5">'+title+subHtml+'</h5>'
+          + '<p class="text-sm text-gray-700 leading-relaxed">'+reason+'</p>'
+          + '</div></div>';
+      }
+      function recPoint(num, color, title, action){
+        const tagColor = {red:'tag-red', purple:'tag-purple', orange:'tag-orange'};
+        return '<div class="rounded-xl border border-gray-200 p-4 bg-white">'
+          + '<div class="flex items-start gap-3">'
+          + '<span class="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold shrink-0">'+num+'</span>'
+          + '<div>'
+          + '<div class="flex items-center gap-2 mb-1"><span class="px-2 py-0.5 rounded text-xs font-medium '+tagColor[color]+'">优化</span><h5 class="font-semibold text-sm text-gray-900">'+title+'</h5></div>'
+          + '<p class="text-sm text-gray-700 leading-relaxed">'+action+'</p>'
+          + '</div></div></div>';
+      }
+    })();
+
+    // 初始渲染
+    renderTable();
+  </script>
+</body>
+</html>

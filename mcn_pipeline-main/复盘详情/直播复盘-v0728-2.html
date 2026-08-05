@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>直播数据复盘</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: 'PingFang SC','Microsoft YaHei','Helvetica Neue',Arial,sans-serif; background:#f9fafb; }
+    .card { background:#fff; border-radius:12px; box-shadow:0 1px 2px rgba(0,0,0,0.04),0 2px 8px rgba(0,0,0,0.02); }
+    .tag { border-radius:999px; padding:2px 10px; font-size:12px; font-weight:500; }
+    .metric-card:hover { transform: translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,0.06); }
+    .trend-up { color:#dc2626; }
+    .trend-down { color:#16a34a; }
+    .priority-high { background:#fee2e2; color:#dc2626; }
+    .priority-medium { background:#ffedd5; color:#ea580c; }
+    .priority-low { background:#dbeafe; color:#2563eb; }
+    .timeline-item.active { background:#eff6ff; border-left:4px solid #3b82f6; }
+  </style>
+</head>
+<body class="text-gray-800">
+  <div class="min-h-screen p-6">
+
+    <!-- ===================== 列表视图（首页） ===================== -->
+    <div id="listView">
+      <!-- 顶部标题 + 周维度筛选 -->
+      <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">直播数据复盘</h1>
+          <p class="text-sm text-gray-500 mt-1">按周查看直播列表、每周运营分析与改进建议。</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-sm text-gray-500">选择周：</span>
+          <select id="weekSelect" onchange="renderWeek(this.value)" class="px-3 py-1.5 border rounded-lg bg-white text-sm">
+            <option value="W30">本周 7/15 - 7/21</option>
+            <option value="W29">上周 7/08 - 7/14</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 本周直播列表 -->
+      <div class="card p-5 mb-6">
+        <h3 id="listTitle" class="font-bold text-gray-900 mb-4">本周直播列表</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600">
+              <tr>
+                <th class="text-left font-medium py-3 px-3 rounded-l-lg">直播名称</th>
+                <th class="text-left font-medium py-3 px-3">直播时间</th>
+                <th class="text-left font-medium py-3 px-3">直播时长</th>
+                <th class="text-left font-medium py-3 px-3">人均观看时长</th>
+                <th class="text-left font-medium py-3 px-3 rounded-r-lg">互动人数</th>
+              </tr>
+            </thead>
+            <tbody id="liveListBody" class="divide-y divide-gray-100"></tbody>
+          </table>
+        </div>
+        <p class="text-xs text-gray-400 mt-3">提示：点击「直播名称」可进入该场直播的单场复盘详情。</p>
+      </div>
+
+      <!-- 每周直播复盘运营分析 -->
+      <div class="card p-5 mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-bold text-gray-900">每周直播复盘运营分析</h3>
+          <span id="analysisWeek" class="text-xs text-gray-400"></span>
+        </div>
+        <div class="space-y-4">
+          <!-- 1 好的地方 -->
+          <div class="flex gap-3">
+            <span class="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center text-xs shrink-0 font-bold">1</span>
+            <div class="flex-1">
+              <div class="font-bold text-sm text-gray-900">互动氛围活跃</div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                <div class="bg-gray-50 rounded-lg p-3"><div class="text-xs font-medium text-blue-700 mb-1">对标自己</div><p id="a-good1-self" class="text-xs text-gray-600"></p></div>
+                <div class="bg-gray-50 rounded-lg p-3"><div class="text-xs font-medium text-purple-700 mb-1">对标平台</div><p id="a-good1-plat" class="text-xs text-gray-600"></p></div>
+              </div>
+            </div>
+          </div>
+          <!-- 2 好的地方 -->
+          <div class="flex gap-3">
+            <span class="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center text-xs shrink-0 font-bold">2</span>
+            <div class="flex-1">
+              <div class="font-bold text-sm text-gray-900">内容契合客户持仓</div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                <div class="bg-gray-50 rounded-lg p-3"><div class="text-xs font-medium text-blue-700 mb-1">对标自己</div><p id="a-good2-self" class="text-xs text-gray-600"></p></div>
+                <div class="bg-gray-50 rounded-lg p-3"><div class="text-xs font-medium text-purple-700 mb-1">对标平台</div><p id="a-good2-plat" class="text-xs text-gray-600"></p></div>
+              </div>
+            </div>
+          </div>
+          <!-- 3 不好的地方 -->
+          <div class="flex gap-3">
+            <span class="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs shrink-0 font-bold">3</span>
+            <div class="flex-1">
+              <div class="font-bold text-sm text-gray-900">直播运营曝光与触达偏被动</div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                <div class="bg-red-50 rounded-lg p-3"><div class="text-xs font-medium text-red-700 mb-1">对标自己</div><p id="a-bad-self" class="text-xs text-gray-600"></p></div>
+                <div class="bg-red-50 rounded-lg p-3"><div class="text-xs font-medium text-red-700 mb-1">对标平台</div><p id="a-bad-plat" class="text-xs text-gray-600"></p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 具体建议 -->
+      <div class="card p-5 mb-8">
+        <h3 class="font-bold text-gray-900 mb-4">具体建议</h3>
+        <ul id="suggestionList" class="text-sm text-gray-700 space-y-2 list-decimal list-inside"></ul>
+      </div>
+    </div>
+
+    <style>.exec-action-card{transition:all .2s}.exec-action-card:hover{box-shadow:0 10px 28px rgba(0,0,0,.08)}.step-line{position:absolute;left:20px;top:40px;bottom:0;width:2px;background:#e5e7eb}.step-dot{width:12px;height:12px;border-radius:50%;background:#ef4444;border:2px solid #fff;box-shadow:0 0 0 2px #fecaca}</style>
+    <!-- 后续可执行动作 -->
+    <section class="exec-actions mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-bold text-lg text-gray-900">后续可执行动作</h2>
+        <div class="flex items-center gap-3 text-xs">
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500"></span>高优</span>
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-orange-500"></span>中优</span>
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span>低优</span>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        <div class="exec-action-card bg-white rounded-xl border border-gray-200 p-5 relative cursor-pointer" onclick="openListActionModalById('live-hook')">
+          <div class="absolute top-4 right-4"><span class="px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">高优</span></div>
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 18h6M10 21h4M12 3a6 6 0 00-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0012 3z"></path></svg></div>
+            <span class="text-xs text-gray-400">1</span>
+          </div>
+          <h3 class="font-bold text-gray-900 mb-2">财富圈介绍环节改造</h3>
+          <p class="text-xs text-gray-500 leading-relaxed mb-4">在 20:15 财富圈介绍环节增加悬念钩子与表情互动，设计 3 套话术模板，目标把该时段流失（在线 420→380）收窄 50%。</p>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-400">点击查看详情</span>
+            <span class="px-3 py-1.5 bg-red-500 text-white text-xs font-medium rounded-lg flex items-center gap-1">去执行<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>
+          </div>
+        </div>
+        <div class="exec-action-card bg-white rounded-xl border border-gray-200 p-5 relative cursor-pointer" onclick="openListActionModalById('live-compliance')">
+          <div class="absolute top-4 right-4"><span class="px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">中优</span></div>
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z"></path></svg></div>
+            <span class="text-xs text-gray-400">2</span>
+          </div>
+          <h3 class="font-bold text-gray-900 mb-2">合规话术前置</h3>
+          <p class="text-xs text-gray-500 leading-relaxed mb-4">针对个股提及与表述不严谨两类风险，提前准备标准化合规话术库，下播前 10 分钟自动提醒主播复核。</p>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-400">点击查看详情</span>
+            <span class="px-3 py-1.5 bg-red-500 text-white text-xs font-medium rounded-lg flex items-center gap-1">去执行<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>
+          </div>
+        </div>
+        <div class="exec-action-card bg-white rounded-xl border border-gray-200 p-5 relative cursor-pointer" onclick="openListActionModalById('live-followup')">
+          <div class="absolute top-4 right-4"><span class="px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">低优</span></div>
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100 8 4 4 0 000-8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"></path></svg></div>
+            <span class="text-xs text-gray-400">3</span>
+          </div>
+          <h3 class="font-bold text-gray-900 mb-2">高意向客户 24h 跟进</h3>
+          <p class="text-xs text-gray-500 leading-relaxed mb-4">对 3 位高意向客户（320 万加仓、85 万入金等）在直播结束后 24h 内 1v1 优先跟进，并自动按意向分群推送企微话术。</p>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-400">点击查看详情</span>
+            <span class="px-3 py-1.5 bg-red-500 text-white text-xs font-medium rounded-lg flex items-center gap-1">去执行<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- 后续可执行动作 工作流弹窗（列表视图） -->
+    <div id="listActionModal" class="fixed inset-0 modal-overlay hidden z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+          <div>
+            <h3 id="listActionModalTitle" class="font-bold text-lg text-gray-900">动作详情</h3>
+            <p class="text-xs text-gray-500 mt-0.5">点击下方执行按钮可一键运行完整工作流</p>
+          </div>
+          <button onclick="closeListActionModal()" class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        </div>
+        <div class="p-6" id="listActionModalBody"></div>
+        <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-gray-50 rounded-b-2xl">
+          <span class="text-xs text-gray-500">执行后将自动完成所有子步骤并生成执行报告</span>
+          <div class="flex gap-3">
+            <button onclick="closeListActionModal()" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50">忽略</button>
+            <button onclick="executeListAction()" class="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              去执行
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      const listActions = [
+        { id: 'live-hook', title: '财富圈介绍环节改造', desc: '在 20:15 财富圈介绍环节增加悬念钩子与表情互动，设计 3 套话术模板，目标把该时段流失（在线 420→380）收窄 50%。', priority: 'high', priorityLabel: '高优', color: 'red', icon: 'M9 18h6M10 21h4M12 3a6 6 0 00-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0012 3z', steps: [
+          { title: '定位流失节点', content: '回放 20:10–20:20 时段，标记观众流失峰值与弹幕情绪变化，确认财富圈介绍环节的疲劳点。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：流失节点时间戳与弹幕关键词云</div>' },
+          { title: '设计悬念钩子模板', content: '为财富圈介绍设计 3 套话术模板：痛点反问式、数据预告式、福利限时式。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：3 套话术模板与表情互动脚本</div>' },
+          { title: '配置主播提词器', content: '将话术模板嵌入直播提词器，并在 20:15 自动弹窗提醒主播使用表情互动。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：提词器配置完成，下场直播生效</div>' },
+          { title: '追踪流失收窄效果', content: '对比下场直播同时间段在线人数，目标流失收窄 50%（即从 40 人降至 20 人以内）。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：单场直播效果对比报告</div>' }
+        ]},
+        { id: 'live-compliance', title: '合规话术前置', desc: '针对个股提及与表述不严谨两类风险，提前准备标准化合规话术库，下播前 10 分钟自动提醒主播复核。', priority: 'medium', priorityLabel: '中优', color: 'orange', icon: 'M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z', steps: [
+          { title: '梳理高风险话术', content: '基于历史直播回放与违规记录，整理个股提及、收益承诺、表述不严谨等高风险场景清单。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：高风险话术清单 15 条</div>' },
+          { title: '生成标准合规话术库', content: '为每类高风险场景编写标准替换话术，形成《直播合规话术库 V1.0》。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：合规话术库文档与快捷回复包</div>' },
+          { title: '接入实时语音风控', content: '将话术库接入直播实时语音转写系统，出现高风险表述时自动弹窗提醒主播。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：实时风控规则配置上线</div>' },
+          { title: '下播前自动复核', content: '直播结束前 10 分钟自动触发复核提醒，主播确认无违规表述后方可下播。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：下播复核流程 SOP</div>' }
+        ]},
+        { id: 'live-followup', title: '高意向客户 24h 跟进', desc: '对 3 位高意向客户（320 万加仓、85 万入金等）在直播结束后 24h 内 1v1 优先跟进，并自动按意向分群推送企微话术。', priority: 'low', priorityLabel: '低优', color: 'blue', icon: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100 8 4 4 0 000-8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75', steps: [
+          { title: '识别高意向客户', content: '基于直播互动（评论、点赞、加微点击、停留时长）筛选出 3 位高意向客户并生成画像。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：高意向客户清单与意向标签</div>' },
+          { title: '生成 1v1 跟进话术', content: '按客户意向类型（加仓/入金/调佣）生成差异化企微跟进话术，突出直播要点与下一步动作。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：3 套 1v1 跟进话术</div>' },
+          { title: '自动派单至客户经理', content: '将高意向客户自动派单给对应客户经理，并设置 24h 内必须跟进的 SLA 提醒。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：CRM 派单任务 3 个</div>' },
+          { title: '分群推送与效果追踪', content: '按意向分群自动推送企微话术，并追踪 48h 内的回复率与转化率。', detail: '<div class="text-xs text-slate-500 bg-gray-50 rounded p-2 mt-2">输出：跟进效果报告，回复率目标 ≥60%</div>' }
+        ]}
+      ];
+      let currentListAction = null;
+      function openListActionModalById(id) {
+        currentListAction = listActions.find(a => a.id === id);
+        if (!currentListAction) return;
+        document.getElementById('listActionModalTitle').textContent = currentListAction.title;
+        const body = document.getElementById('listActionModalBody');
+        body.innerHTML = currentListAction.steps.map((s, i) => `
+          <div class="relative pl-8 pb-6 last:pb-0">
+            <div class="step-line"></div>
+            <div class="absolute left-0 top-1.5 step-dot"></div>
+            <div class="bg-white rounded-lg border border-gray-200 p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-5 h-5 rounded-full bg-gray-100 text-gray-700 text-xs font-bold flex items-center justify-center">${i + 1}</span>
+                <h4 class="font-bold text-gray-900">${s.title}</h4>
+              </div>
+              <p class="text-sm text-gray-600 mb-2">${s.content}</p>
+              ${s.detail}
+            </div>
+          </div>
+        `).join('');
+        document.getElementById('listActionModal').classList.remove('hidden');
+      }
+      function closeListActionModal() { document.getElementById('listActionModal').classList.add('hidden'); currentListAction = null; }
+      function executeListAction() { alert(`已启动「${currentListAction?.title || '动作'}」工作流，执行结果将在完成后推送至消息中心。`); closeListActionModal(); }
+      document.getElementById('listActionModal').addEventListener('click', (e) => { if (e.target === document.getElementById('listActionModal')) closeListActionModal(); });
+    </script>
+
+    <!-- ===================== 详情视图（单场复盘） ===================== -->
+    <div id="detailView" style="display:none;">
+      <!-- 顶部标题 -->
+      <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+        <div>
+          <button onclick="showList()" class="mb-2 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600">← 返回直播列表</button>
+          <div class="flex items-center gap-2 mb-1">
+            <h1 class="text-2xl font-bold text-gray-900">直播数据复盘</h1>
+            <span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded">半天前</span>
+          </div>
+          <p class="text-sm text-gray-500">对单场直播的人气、互动、停留和运营节奏进行复盘，并输出运营分析与执行动作。</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-gray-500">最近更新：2024-07-17 09:00</span>
+          <button class="px-3 py-1.5 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700">刷新</button>
+          <button class="px-3 py-1.5 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700">导出</button>
+        </div>
+      </div>
+
+      <!-- 直播基础信息 -->
+      <div class="card p-5 mb-6 flex items-center gap-4">
+        <div class="w-14 h-14 rounded-full bg-red-500 text-white flex items-center justify-center text-xl font-bold shrink-0">张</div>
+        <div>
+          <div id="detailLiveTitle" class="text-lg font-bold text-gray-900">【7/16 资产配置-组合跟踪报告】</div>
+          <div class="text-sm text-gray-500 mt-1">直播时间：2024-07-16 19:20—20:42 &nbsp;|&nbsp; 主播：张晓明</div>
+        </div>
+      </div>
+
+      <!-- 直播总览指标 -->
+      <h3 class="text-base font-bold text-gray-900 mb-3">直播总览</h3>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <div class="card metric-card p-4 transition-all">
+          <div class="text-xs text-gray-500 mb-1">直播时长</div>
+          <div class="text-xl font-bold text-gray-900">1小时22分</div>
+          <div class="text-xs trend-up mt-1">+8.2% 较上场</div>
+        </div>
+        <div class="card metric-card p-4 transition-all">
+          <div class="text-xs text-gray-500 mb-1">观看总人数</div>
+          <div class="text-xl font-bold text-gray-900">3,912</div>
+          <div class="text-xs trend-up mt-1">+13.6% 较上场</div>
+        </div>
+        <div class="card metric-card p-4 transition-all">
+          <div class="text-xs text-gray-500 mb-1">名下客户数</div>
+          <div class="text-xl font-bold text-gray-900">289</div>
+          <div class="text-xs trend-up mt-1">+5.1% 较上场</div>
+        </div>
+        <div class="card metric-card p-4 transition-all">
+          <div class="text-xs text-gray-500 mb-1">人均观看时长</div>
+          <div class="text-xl font-bold text-gray-900">36分35秒</div>
+          <div class="text-xs trend-down mt-1">-6.2% 较上场</div>
+        </div>
+        <div class="card metric-card p-4 transition-all">
+          <div class="text-xs text-gray-500 mb-1">名下客户观看时长</div>
+          <div class="text-xl font-bold text-gray-900">28分12秒</div>
+          <div class="text-xs trend-up mt-1">+4.3% 较上场</div>
+        </div>
+        <div class="card metric-card p-4 transition-all">
+          <div class="text-xs text-gray-500 mb-1">互动人数</div>
+          <div class="text-xl font-bold text-gray-900">895</div>
+          <div class="text-xs trend-up mt-1">+17.5% 较上场</div>
+        </div>
+        <div class="card metric-card p-4 transition-all">
+          <div class="text-xs text-gray-500 mb-1">加企微人数</div>
+          <div class="text-xl font-bold text-gray-900">58</div>
+          <div class="text-xs trend-up mt-1">+21.4% 较上场</div>
+        </div>
+        <div class="card metric-card p-4 transition-all">
+          <div class="text-xs text-gray-500 mb-1">选投顾人数</div>
+          <div class="text-xl font-bold text-gray-900">42</div>
+          <div class="text-xs trend-up mt-1">+12.0% 较上场</div>
+        </div>
+        <div class="card metric-card p-4 transition-all">
+          <div class="text-xs text-gray-500 mb-1">运营位点击数</div>
+          <div class="text-xl font-bold text-gray-900">127</div>
+          <div class="text-xs trend-down mt-1">-3.1% 较上场</div>
+        </div>
+        <div class="card metric-card p-4 transition-all">
+          <div class="text-xs text-gray-500 mb-1">涨粉丝数</div>
+          <div class="text-xl font-bold text-gray-900">27</div>
+          <div class="text-xs trend-up mt-1">+35.0% 较上场</div>
+        </div>
+      </div>
+
+      <!-- 图表 + 关键时间轴 -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div class="card lg:col-span-2 p-5">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-gray-900">直播在线人数趋势</h3>
+            <div class="flex items-center gap-2 text-xs text-gray-500">
+              <span class="w-2 h-2 rounded-full bg-blue-500"></span> 在线人数
+              <span class="ml-2 text-gray-400">（点击数据点查看时段详情）</span>
+            </div>
+          </div>
+          <div class="h-72">
+            <canvas id="onlineChart"></canvas>
+          </div>
+          <div id="pointDetail" class="mt-4 p-4 bg-gray-50 rounded-lg text-sm min-h-[120px]">
+            <p class="text-gray-400">点击上方折线图的数据点，查看该时段的讲解内容、人数涨跌原因与高光点，右侧关键时间轴会同步高亮。</p>
+          </div>
+        </div>
+        <div class="card p-5">
+          <h3 class="font-bold text-gray-900 mb-4">关键时间轴</h3>
+          <ul id="timeline" class="space-y-4 text-sm">
+            <li class="timeline-item flex gap-3 p-2 rounded" data-index="0">
+              <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0 font-bold">1</div>
+              <div class="flex-1 border-b pb-3">
+                <div class="font-bold">19:20 开场预热</div>
+                <div class="text-gray-500 text-xs mt-0.5">在线人数 210，引导关注 +12 人</div>
+              </div>
+            </li>
+            <li class="timeline-item flex gap-3 p-2 rounded" data-index="1">
+              <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0 font-bold">2</div>
+              <div class="flex-1 border-b pb-3">
+                <div class="font-bold">19:35 市场行情</div>
+                <div class="text-gray-500 text-xs mt-0.5">在线人数升至峰值 520，互动活跃</div>
+              </div>
+            </li>
+            <li class="timeline-item flex gap-3 p-2 rounded" data-index="2">
+              <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0 font-bold">3</div>
+              <div class="flex-1 border-b pb-3">
+                <div class="font-bold">19:50 配置策略</div>
+                <div class="text-gray-500 text-xs mt-0.5">客户咨询“怎么配”，新增线索 11 人</div>
+              </div>
+            </li>
+            <li class="timeline-item flex gap-3 p-2 rounded" data-index="3">
+              <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0 font-bold">4</div>
+              <div class="flex-1 border-b pb-3">
+                <div class="font-bold">20:15 财富圈介绍</div>
+                <div class="text-gray-500 text-xs mt-0.5">在线人数由 420 降至 380</div>
+              </div>
+            </li>
+            <li class="timeline-item flex gap-3 p-2 rounded" data-index="4">
+              <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0 font-bold">5</div>
+              <div class="flex-1">
+                <div class="font-bold">20:42 直播结束</div>
+                <div class="text-gray-500 text-xs mt-0.5">累计观看 3,912，互动 895</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 本场直播观看客户 -->
+      <div class="card p-5 mb-6">
+        <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mb-4">
+          <div>
+            <h3 class="font-bold text-gray-900">本场直播观看客户</h3>
+            <p class="text-xs text-gray-500 mt-1">本场观看客户，共 24 位</p>
+          </div>
+          <div class="flex gap-2">
+            <button class="px-3 py-1.5 text-xs border rounded-lg bg-white hover:bg-gray-50">导出清单</button>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600">
+              <tr>
+                <th class="text-left font-medium py-3 px-3 rounded-l-lg">客户</th>
+                <th class="text-left font-medium py-3 px-3">总资产</th>
+                <th class="text-left font-medium py-3 px-3">交易频次</th>
+                <th class="text-left font-medium py-3 px-3">盈亏情况</th>
+                <th class="text-left font-medium py-3 px-3">是否已买配置</th>
+                <th class="text-left font-medium py-3 px-3">本月观看直播次数</th>
+                <th class="text-left font-medium py-3 px-3">今日浏览财富圈长文</th>
+                <th class="text-left font-medium py-3 px-3 rounded-r-lg">持仓 Top3 行业</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              <tr class="hover:bg-gray-50">
+                <td class="py-3 px-3 font-medium">张**</td>
+                <td class="py-3 px-3">320万</td>
+                <td class="py-3 px-3">12次/月</td>
+                <td class="py-3 px-3 text-red-600">+8.5%</td>
+                <td class="py-3 px-3"><span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">是</span></td>
+                <td class="py-3 px-3">5</td>
+                <td class="py-3 px-3">3</td>
+                <td class="py-3 px-3 text-xs">电子 / 医药 / 电力设备</td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="py-3 px-3 font-medium">李**</td>
+                <td class="py-3 px-3">85万</td>
+                <td class="py-3 px-3">4次/月</td>
+                <td class="py-3 px-3 text-green-600">-2.1%</td>
+                <td class="py-3 px-3"><span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">否</span></td>
+                <td class="py-3 px-3">2</td>
+                <td class="py-3 px-3">0</td>
+                <td class="py-3 px-3 text-xs">食品饮料 / 银行 / 地产</td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="py-3 px-3 font-medium">王**</td>
+                <td class="py-3 px-3">560万</td>
+                <td class="py-3 px-3">28次/月</td>
+                <td class="py-3 px-3 text-red-600">+15.3%</td>
+                <td class="py-3 px-3"><span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">是</span></td>
+                <td class="py-3 px-3">8</td>
+                <td class="py-3 px-3">5</td>
+                <td class="py-3 px-3 text-xs">电子 / 电力设备 / 医药</td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="py-3 px-3 font-medium">赵**</td>
+                <td class="py-3 px-3">150万</td>
+                <td class="py-3 px-3">7次/月</td>
+                <td class="py-3 px-3 text-red-600">+3.4%</td>
+                <td class="py-3 px-3"><span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">是</span></td>
+                <td class="py-3 px-3">3</td>
+                <td class="py-3 px-3">1</td>
+                <td class="py-3 px-3 text-xs">医药 / 电子 / 食品饮料</td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="py-3 px-3 font-medium">陈**</td>
+                <td class="py-3 px-3">42万</td>
+                <td class="py-3 px-3">2次/月</td>
+                <td class="py-3 px-3 text-green-600">-0.8%</td>
+                <td class="py-3 px-3"><span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">否</span></td>
+                <td class="py-3 px-3">1</td>
+                <td class="py-3 px-3">2</td>
+                <td class="py-3 px-3 text-xs">银行 / 地产 / 煤炭</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 群体画像 -->
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="card p-4 md:col-span-1">
+            <h4 class="font-bold text-gray-800 mb-2">持仓行业分布</h4>
+            <div class="h-48"><canvas id="industryChart"></canvas></div>
+          </div>
+          <div class="card p-4 md:col-span-1">
+            <h4 class="font-bold text-gray-800 mb-2">总资产分布</h4>
+            <div class="h-48"><canvas id="assetChart"></canvas></div>
+          </div>
+          <div class="card p-4 md:col-span-1 bg-blue-50">
+            <h4 class="font-bold text-gray-800 mb-3">群体画像小结</h4>
+            <ul class="text-sm text-gray-700 space-y-2">
+              <li>• 以中高净值客户为主，100 万以上占比 <span class="font-bold text-blue-700">55%</span>。</li>
+              <li>• 持仓高度集中在 <span class="font-bold">电子、医药生物、电力设备</span>，与直播主题契合。</li>
+              <li>• 本月人均观看直播 <span class="font-bold">3.8 次</span>，财富圈长文日均浏览 <span class="font-bold">2.2 篇</span>。</li>
+              <li>• 已买配置客户占比 <span class="font-bold text-green-700">60%</span>，仍有加仓/入金空间。</li>
+            </ul>
+            <!-- 群体画像小结下的两个跳转链接 -->
+            <div class="mt-4 space-y-2">
+              <button onclick="openModal('autoTags')" class="w-full flex items-center justify-between p-2.5 bg-white border rounded-lg hover:bg-blue-50 text-sm transition-colors">
+                <span class="flex items-center gap-2 text-gray-800">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                  自动识别客户标签
+                </span>
+                <span class="text-gray-400 text-xs">查看客户自动标签 →</span>
+              </button>
+              <button onclick="openModal('leads')" class="w-full flex items-center justify-between p-2.5 bg-white border rounded-lg hover:bg-blue-50 text-sm transition-colors">
+                <span class="flex items-center gap-2 text-gray-800">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  服务线索
+                </span>
+                <span class="text-gray-400 text-xs">前往线索洞察 →</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 运营分析结论 -->
+      <h3 class="text-lg font-bold text-gray-900 mb-4">运营分析结论</h3>
+      <div class="card p-5 mb-6">
+        <div class="space-y-6">
+          <!-- 1 直播主题维度 -->
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <span class="w-7 h-7 rounded-full bg-red-500 text-white flex items-center justify-center text-sm shrink-0 font-bold">1</span>
+              <h4 class="font-bold text-gray-900 text-base">直播主题维度</h4>
+            </div>
+            <div class="space-y-3 pl-9">
+              <div>
+                <div class="font-bold text-sm text-gray-900"><span class="text-red-500">（1）</span> 主播讲的最多的话题</div>
+                <p class="text-xs text-gray-500 mt-1">本场直播中主播讲解内容按时长与互动密度加权，主要覆盖以下方向：</p>
+                <div class="flex flex-wrap gap-2 mt-2">
+                  <span class="px-2 py-1 bg-red-50 text-red-700 rounded text-xs">科技板块行情解读 38%</span>
+                  <span class="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs">对于后市的观点 31%</span>
+                  <span class="px-2 py-1 bg-green-50 text-green-700 rounded text-xs">资产配置投教 31%</span>
+                </div>
+              </div>
+              <div>
+                <div class="font-bold text-sm text-gray-900"><span class="text-red-500">（2）</span> 评论区最关注的问题</div>
+                <p class="text-xs text-gray-500 mt-1">评论区高频问题 Top3，直接影响后续内容生产与跟进重点：</p>
+                <ol class="list-decimal list-inside text-xs text-gray-700 mt-2 space-y-1">
+                  <li>科技今天怎么跌得这么凶？</li>
+                  <li>我要把资金转到老登股吗？</li>
+                  <li>怎么订阅主播的财富圈？</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2 主播呈现维度 -->
+          <div class="border-t border-gray-100 pt-5">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="w-7 h-7 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm shrink-0 font-bold">2</span>
+              <h4 class="font-bold text-gray-900 text-base">主播呈现维度</h4>
+            </div>
+            <div class="space-y-3 pl-9">
+              <div>
+                <div class="font-bold text-sm text-gray-900"><span class="text-blue-500">（1）</span> 需求契合度高</div>
+                <p class="text-xs text-gray-500 mt-1">本场直播完美契合客户需求，持仓 Top3 行业（电子、医药生物、电力设备）均有在直播中涉及，继续保持。</p>
+              </div>
+              <div>
+                <div class="font-bold text-sm text-gray-900"><span class="text-blue-500">（2）</span> 合规风险提示</div>
+                <p class="text-xs text-gray-500 mt-1">本场直播有两次涉及违规，后续需要规避：10:36 提及了 XX 个股的介绍；11:15 XX 表述不严谨。</p>
+              </div>
+              <div>
+                <div class="font-bold text-sm text-gray-900"><span class="text-blue-500">（3）</span> 互动节奏与表达优化</div>
+                <p class="text-xs text-gray-500 mt-1">在讲解今日行情前瞻时，在线客户人数最高，同时客户互动活跃；在介绍自己的财富圈时，在线人数快速减少，整体表情偏严肃，可以更加声情并茂一些，同时适当设置悬念，增强互动性。</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3 直播运营维度 -->
+          <div class="border-t border-gray-100 pt-5">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="w-7 h-7 rounded-full bg-amber-500 text-white flex items-center justify-center text-sm shrink-0 font-bold">3</span>
+              <h4 class="font-bold text-gray-900 text-base">直播运营维度</h4>
+            </div>
+            <div class="space-y-3 pl-9">
+              <div>
+                <div class="font-bold text-sm text-gray-900"><span class="text-amber-600">（1）</span> 曝光来源与规模</div>
+                <p class="text-xs text-gray-500 mt-1">本周观看总人数 3,912，较上场 +13.6%，但曝光高度依赖平台推荐流量（19:35 行情时段在线冲到峰值 520 人），开播前主动预热（企微群预告、财富圈长文引流）贡献的曝光占比偏低，自然流量波动大、不可控。</p>
+              </div>
+              <div>
+                <div class="font-bold text-sm text-gray-900"><span class="text-amber-600">（2）</span> 触达效率与转化</div>
+                <p class="text-xs text-gray-500 mt-1">轻触达动作有效：加企微 58 人（+21.4%）、选投顾 42 人（+12%）；但运营位点击数 127、环比 -3.1%，且"订阅财富圈"在 20:15 集中讲解时段在线由 420 降至 380，重转化型触达反而造成流失，触达节奏需前置并拆分。</p>
+              </div>
+              <div>
+                <div class="font-bold text-sm text-gray-900"><span class="text-amber-600">（3）</span> 长尾触达漏洞</div>
+                <p class="text-xs text-gray-500 mt-1">下播后仅约 35% 客户浏览了财富圈长文，低活客户（如陈** 本月仅观看 1 次）几乎未二次触达；涨粉 27（+35%）主要来自直播当场，私域沉淀与下播后内容再利用明显不足。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 具体优化建议 -->
+      <h3 class="text-lg font-bold text-gray-900 mb-4">具体优化建议</h3>
+      <div class="card p-5 mb-6">
+        <div class="space-y-6">
+          <!-- 1 直播主题 -->
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <span class="w-7 h-7 rounded-full bg-red-500 text-white flex items-center justify-center text-sm shrink-0 font-bold">1</span>
+              <h4 class="font-bold text-gray-900 text-base">直播主题：针对高频问题准备标准化话术模板</h4>
+            </div>
+            <div class="pl-9 space-y-2">
+              <p class="text-xs text-gray-600">评论区 Top1"科技跌了能加吗"出现频次最高，但主播回答偏笼统。建议：</p>
+              <ul class="list-disc list-inside text-xs text-gray-600 space-y-1 ml-2">
+                <li>下期直播前准备一段 3 分钟"科技板块定投纪律"话术模板，用具体数字回答（如：近 3 年科技指数最大回撤 -28%、定投 vs 一次性投入收益对比），避免只说"可以加"。</li>
+                <li>把"怎么订阅财富圈"做成 30 秒固定口播模板放在每场结尾，配屏幕引导动图，降低客户操作门槛。</li>
+                <li>建立"高频问题话术库"文档，每场直播后更新评论区 Top3 问题及标准化回答，形成可复用资产。</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 2 主播呈现 -->
+          <div class="border-t border-gray-100 pt-5">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="w-7 h-7 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm shrink-0 font-bold">2</span>
+              <h4 class="font-bold text-gray-900 text-base">主播呈现：合规自查 + 互动节奏拆分优化</h4>
+            </div>
+            <div class="pl-9 space-y-2">
+              <p class="text-xs text-gray-600">本场有 2 处合规风险（10:36 个股提及、11:15 表述不严谨），财富圈介绍时段掉粉 40 人。建议：</p>
+              <ul class="list-disc list-inside text-xs text-gray-600 space-y-1 ml-2">
+                <li><span class="font-medium">合规整改：</span>下播后 48h 内完成合规话术自查清单，针对 10:36 个股提及和 11:15 表述问题，形成"禁用词库 + 替代话术"卡片，主播随身备查，每场直播前过一遍。</li>
+                <li><span class="font-medium">节奏拆分：</span>财富圈介绍从 20:15 集中讲解改为"悬念预告 + 揭晓"两段式——开场 19:20 抛出"结尾有个能自动跟调组合的功能"，20:15 再揭晓并配微笑 + 手势，目标该时段掉粉从 40 人降至 15 人以内。</li>
+                <li><span class="font-medium">表情管理：</span>录制回放自查表情，重点改进财富圈介绍段（偏严肃），可参考平台头部主播该时段的表情节奏与语气变化。</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 3 直播运营 -->
+          <div class="border-t border-gray-100 pt-5">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="w-7 h-7 rounded-full bg-amber-500 text-white flex items-center justify-center text-sm shrink-0 font-bold">3</span>
+              <h4 class="font-bold text-gray-900 text-base">直播运营：主动预热前置 + 长尾二次触达补漏</h4>
+            </div>
+            <div class="pl-9 space-y-2">
+              <p class="text-xs text-gray-600">主动触达率仅 7.3%（低于平台优秀主播 15%），下播后长文浏览率仅 35%，私域沉淀不足。建议：</p>
+              <ul class="list-disc list-inside text-xs text-gray-600 space-y-1 ml-2">
+                <li><span class="font-medium">开播前主动预热：</span>开播前 1 小时用企微 1v1 定向推送预告给高净值 + 高观看客户（如王**、张**、赵**），话术"今晚 19:35 讲科技板块后市，您电子/医药持仓正好用得上"，目标主动触达率从 7.3% 提升至 12%。</li>
+                <li><span class="font-medium">触达节奏前置：</span>把"订阅财富圈"引导从 20:15 集中讲解拆为 2 个短触点（开场预告 + 结尾揭晓），减少中段集中转化导致的流失。</li>
+                <li><span class="font-medium">长尾二次触达：</span>下播后 24h 内对未浏览长文的低活客户（如陈**、李**）推送"3 句话精华"企微卡片——① 科技短期是情绪调整 ② 别急着转老登股 ③ 要完整方案点这里，目标下播后长文浏览率从 35% 提升至 50%。</li>
+                <li><span class="font-medium">私域沉淀：</span>涨粉 27 人主要来自直播当场，下播后用 30s 短视频切片在企微群二次触达，把"直播涨粉"转化为"私域留存"。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 后续可执行动作 -->
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold text-gray-900">后续可执行动作</h3>
+        <div class="flex gap-4 text-xs">
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500"></span>高优</span>
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-orange-500"></span>中优</span>
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span>低优</span>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <!-- 财富圈长文 -->
+        <div class="card p-5 flex flex-col relative">
+          <div class="flex justify-between items-start">
+            <div class="w-10 h-10 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </div>
+            <span class="tag priority-medium">中优</span>
+          </div>
+          <h4 class="font-bold text-gray-900 mt-3">生成财富圈长文精华</h4>
+          <p class="text-sm text-gray-500 mt-1 flex-1">基于本场直播核心主题与评论区热点，自动生成财富圈长文并分发到企微交易客户群。</p>
+          <div class="mt-4 flex justify-between items-center">
+            <button class="text-sm text-gray-400 hover:text-gray-600" onclick="openModal('article')">点击查看详情</button>
+            <button class="px-4 py-1.5 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600" onclick="openModal('article')">去执行</button>
+          </div>
+        </div>
+        <!-- 短视频剪辑 -->
+        <div class="card p-5 flex flex-col relative">
+          <div class="flex justify-between items-start">
+            <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
+            </div>
+            <span class="tag priority-low">低优</span>
+          </div>
+          <h4 class="font-bold text-gray-900 mt-3">精彩短视频自动剪辑发布</h4>
+          <p class="text-sm text-gray-500 mt-1 flex-1">针对精彩内容片段自动剪辑短视频，生成标题与封面，并自动发布上传到视频号/财富圈。</p>
+          <div class="mt-4 flex justify-between items-center">
+            <button class="text-sm text-gray-400 hover:text-gray-600" onclick="openModal('video')">点击查看详情</button>
+            <button class="px-4 py-1.5 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600" onclick="openModal('video')">去执行</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 执行动作弹窗 -->
+  <div id="actionModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl w-full max-w-3xl max-h-[85vh] overflow-y-auto shadow-xl">
+      <div class="p-5 border-b flex justify-between items-center sticky top-0 bg-white rounded-t-xl">
+        <h3 id="modalTitle" class="text-lg font-bold text-gray-900">动作详情</h3>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="modalBody" class="p-5"></div>
+      <div id="modalFooter" class="p-5 border-t bg-gray-50 rounded-b-xl flex justify-end gap-3 sticky bottom-0">
+        <button onclick="closeModal()" class="px-4 py-2 border rounded-lg text-sm hover:bg-white">忽略</button>
+        <button onclick="executeAction()" class="px-4 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 flex items-center gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+          去执行
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============ 列表视图 / 详情视图 切换 ============
+    function showDetail(name) {
+      if (name) document.getElementById('detailLiveTitle').innerText = name;
+      document.getElementById('listView').style.display = 'none';
+      document.getElementById('detailView').style.display = 'block';
+      // 详情视图含图表，显示后需要重新计算尺寸
+      if (typeof onlineChart !== 'undefined') onlineChart.resize();
+      if (typeof industryChartInst !== 'undefined') industryChartInst.resize();
+      if (typeof assetChartInst !== 'undefined') assetChartInst.resize();
+      window.scrollTo(0, 0);
+    }
+    function showList() {
+      document.getElementById('detailView').style.display = 'none';
+      document.getElementById('listView').style.display = 'block';
+      window.scrollTo(0, 0);
+    }
+
+    // ============ 周维度数据 ============
+    const weeksData = {
+      'W30': {
+        label: '本周 7/15 - 7/21',
+        lives: [
+          { name:'【7/15 早盘策略速递】', time:'2024-07-15 09:30—10:05', duration:'35分', avgWatch:'18分20秒', interact:'412' },
+          { name:'【7/16 资产配置-组合跟踪报告】', time:'2024-07-16 19:20—20:42', duration:'1小时22分', avgWatch:'36分35秒', interact:'895' },
+          { name:'【7/18 科技板块深度解读】', time:'2024-07-18 19:30—20:50', duration:'1小时20分', avgWatch:'31分10秒', interact:'768' },
+          { name:'【7/20 周末答疑专场】', time:'2024-07-20 15:00—16:00', duration:'1小时00分', avgWatch:'22分45秒', interact:'533' }
+        ],
+        analysis: {
+          good1: {
+            self: '本周场均互动人数较上周提升 18%，评论区提问密度明显上升，其中 7/16 场次单分钟提问破 30+。',
+            plat: '互动率（互动人数/观看人数）达 22.9%，高于平台同类财经直播均值 15%，处于头部 20%。'
+          },
+          good2: {
+            self: '本周主题与名下客户持仓 Top3 行业（电子、医药生物、电力设备）高度吻合，观众停留时长稳定。',
+            plat: '内容专业度评分 4.7/5，高于平台财经主播均值 4.2，客户完播率领先同类主播。'
+          },
+          bad: {
+            self: '本周直播曝光过度依赖平台推荐流量，开播前主动触达（企微群预告、财富圈预热）覆盖不足；运营位点击数环比 -3.1%，直播间内触达转化效率待提升。',
+            plat: '主动触达率（预告触达/观看人数）约 7.3%，低于平台优秀主播 15%，私域预热与跨渠道分发是下周运营重点。'
+          }
+        },
+        suggestions: [
+          '针对已买配置、高净值且本月观看≥3 次的老客户（如王**、张**）：开播前 1 小时用企微 1v1 推送定向预告"今晚 19:35 讲科技板块后市，您电子/医药持仓正好用得上"，提升主动触达与到场率。',
+          '在 19:35 行情峰值时段（在线 520、互动最活跃）顺势抛钩子话术："接下来这段能帮你把科技回调变成加仓机会，先点关注别走开"，把流量沉淀为关注与订阅。',
+          '针对下播后 24h 内仍未浏览财富圈长文的客户（如陈**、李**）：推送"3 句话精华"企微卡片——①科技短期是情绪调整 ②别急着转老登股 ③要完整再平衡方案点这里，用轻量触达二次激活。',
+          '把"订阅财富圈"引导拆成 2 个短触点：开场 19:20 说"结尾有个能自动跟调组合的功能"，20:15 再揭晓，避免中段集中讲解导致掉粉（在线由 420→380）。'
+        ]
+      },
+      'W29': {
+        label: '上周 7/08 - 7/14',
+        lives: [
+          { name:'【7/09 中报业绩前瞻】', time:'2024-07-09 19:30—20:40', duration:'1小时10分', avgWatch:'28分05秒', interact:'654' },
+          { name:'【7/11 港股机会梳理】', time:'2024-07-11 19:20—20:30', duration:'1小时10分', avgWatch:'25分30秒', interact:'588' },
+          { name:'【7/13 基金定投方法论】', time:'2024-07-13 15:00—16:10', duration:'1小时10分', avgWatch:'20分15秒', interact:'470' }
+        ],
+        analysis: {
+          good1: {
+            self: '上周新增线索 23 人，较此前一周提升 9%，中报主题引发客户主动咨询。',
+            plat: '互动率 19.5%，高于平台同类均值 15%，处中上游水平。'
+          },
+          good2: {
+            self: '港股专场吸引了较多低持仓客户观看，为后续转化打开入口。',
+            plat: '新客占比 31%，高于平台均值 22%，拉新效果较好。'
+          },
+          bad: {
+            self: '基金定投专场长尾触达弱，下播后未二次触达，导致有效观看时长偏低、完播率仅 48%；私域复看率 12%。',
+            plat: '私域复看率低于平台优秀主播 25%，下播后内容再利用与精准推送不足，错失长尾转化窗口。'
+          }
+        },
+        suggestions: [
+          '针对港股专场的高意向新客（新客占比 31%）：直播结束 24h 内用企微交易客户群推送"港股机会清单"卡片，配话术"王姐，您昨晚问的港股标的我整理好了，点开看，需 1v1 诊断回复 1"，趁热转化。',
+          '基金定投等方法论专场控制在 45 分钟内，在 20 分钟处插入"1 分钟收益测算"互动："假设你每月定投 2000、按历史年化 8%…"，用具体数字拉回流失观众。',
+          '对本周观看 1-2 次的低活客户（如陈**）：下播后用 30s 短视频切片（行情峰值画面）+ 一句钩子"昨晚没赶上？这 30 秒是重点"在企微群二次触达，提升复看率。'
+        ]
+      }
+    };
+
+    function renderWeek(weekKey) {
+      const w = weeksData[weekKey];
+      // 直播列表
+      document.getElementById('liveListBody').innerHTML = w.lives.map(l => `
+        <tr class="hover:bg-gray-50">
+          <td class="py-3 px-3 font-medium text-blue-600 hover:underline cursor-pointer" onclick="showDetail('${l.name}')">${l.name} ↗</td>
+          <td class="py-3 px-3">${l.time}</td>
+          <td class="py-3 px-3">${l.duration}</td>
+          <td class="py-3 px-3">${l.avgWatch}</td>
+          <td class="py-3 px-3">${l.interact}</td>
+        </tr>
+      `).join('');
+      document.getElementById('listTitle').innerText = w.label + ' 直播列表';
+      document.getElementById('analysisWeek').innerText = w.label;
+      // 运营分析
+      document.getElementById('a-good1-self').innerText = w.analysis.good1.self;
+      document.getElementById('a-good1-plat').innerText = w.analysis.good1.plat;
+      document.getElementById('a-good2-self').innerText = w.analysis.good2.self;
+      document.getElementById('a-good2-plat').innerText = w.analysis.good2.plat;
+      document.getElementById('a-bad-self').innerText = w.analysis.bad.self;
+      document.getElementById('a-bad-plat').innerText = w.analysis.bad.plat;
+      // 具体建议
+      document.getElementById('suggestionList').innerHTML = w.suggestions.map(s => `<li>${s}</li>`).join('');
+    }
+    // 默认渲染本周
+    renderWeek('W30');
+
+    // ============ 详情视图图表 ============
+    // 在线人数趋势图（点击数据点联动详情 + 时间轴高亮）
+    const pointDetails = [
+      {
+        time: '19:20 开场预热',
+        topic: '开场白、自我介绍、今日直播大纲与福利预告。',
+        up: '预热引流，老粉丝集中进入直播间。',
+        down: '尚未进入干货环节，新用户处于观望状态。',
+        highlight: '引导关注 +12 人，开场节奏平稳。'
+      },
+      {
+        time: '19:35 市场行情',
+        topic: '科技板块行情解读、今日盘面复盘、下跌原因拆解。',
+        up: '精准切中客户最关心的科技话题，互动提问密集。',
+        down: '无明显下跌，为全场人气峰值。',
+        highlight: '在线人数达到峰值 520，评论区单分钟提问 30+。'
+      },
+      {
+        time: '19:50 配置策略',
+        topic: '资产配置投教、如何做行业再平衡与仓位管理。',
+        up: '实战策略吸引高净值客户停留。',
+        down: '部分用户觉得内容偏专业，轻度流失。',
+        highlight: '新增线索 11 人，配置咨询明显上升。'
+      },
+      {
+        time: '20:15 财富圈介绍',
+        topic: '介绍主播财富圈权益、订阅方式与专属内容。',
+        up: '老粉丝对专属内容感兴趣。',
+        down: '表情偏严肃、缺少悬念，部分用户退出，在线由 420 降至 380。',
+        highlight: '财富圈订阅咨询上升，但需优化呈现方式。'
+      },
+      {
+        time: '20:42 直播结束',
+        topic: '全场总结、后续直播预告与答疑收尾。',
+        up: '结尾福利预告带来小幅回流。',
+        down: '自然流失，临近结束人数回落。',
+        highlight: '累计观看 3,912，互动 895，涨粉 27。'
+      }
+    ];
+
+    const ctx = document.getElementById('onlineChart').getContext('2d');
+    const onlineChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['19:20','19:35','19:50','20:15','20:42'],
+        datasets: [{
+          label: '在线人数',
+          data: [210,520,450,380,350],
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59,130,246,0.08)',
+          borderWidth: 2,
+          tension: 0.3,
+          pointRadius: 6,
+          pointHoverRadius: 8,
+          pointBackgroundColor: '#fff',
+          pointBorderColor: '#3b82f6',
+          pointBorderWidth: 2,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: (items) => pointDetails[items[0].dataIndex].time,
+              label: (c) => {
+                const d = pointDetails[c.dataIndex];
+                return [
+                  '在线人数：' + c.parsed.y,
+                  '上涨原因：' + d.up,
+                  '下跌原因：' + d.down,
+                  '高光点：' + d.highlight
+                ];
+              }
+            }
+          }
+        },
+        scales: {
+          y: { beginAtZero: false, grid: { color: '#f3f4f6' } },
+          x: { grid: { display: false } }
+        },
+        onClick: (evt, elements) => {
+          if (elements.length) {
+            const idx = elements[0].index;
+            showDetailPoint(idx);
+            highlightTimeline(idx);
+          }
+        }
+      }
+    });
+
+    function showDetailPoint(idx) {
+      const d = pointDetails[idx];
+      document.getElementById('pointDetail').innerHTML = `
+        <div class="flex items-center gap-2 mb-2">
+          <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-bold">${d.time}</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div><span class="font-medium text-gray-700">讲解内容：</span><span class="text-gray-600">${d.topic}</span></div>
+          <div><span class="font-medium text-red-600">上涨原因：</span><span class="text-gray-600">${d.up}</span></div>
+          <div><span class="font-medium text-green-600">下跌原因：</span><span class="text-gray-600">${d.down}</span></div>
+          <div><span class="font-medium text-amber-600">高光点：</span><span class="text-gray-600">${d.highlight}</span></div>
+        </div>
+      `;
+    }
+
+    function highlightTimeline(idx) {
+      document.querySelectorAll('#timeline .timeline-item').forEach(el => {
+        el.classList.toggle('active', Number(el.dataset.index) === idx);
+      });
+    }
+
+    // 群体画像饼图
+    const industryChartInst = new Chart(document.getElementById('industryChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['电子','医药生物','电力设备','食品饮料','其他'],
+        datasets: [{ data: [34,26,18,12,10], backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#9ca3af'], borderWidth: 1 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } } }
+    });
+
+    const assetChartInst = new Chart(document.getElementById('assetChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['<50万','50-100万','100-300万','>300万'],
+        datasets: [{ data: [20,25,30,25], backgroundColor: ['#60a5fa','#3b82f6','#1d4ed8','#1e3a8a'], borderWidth: 1 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } } }
+    });
+
+    // ============ 执行动作弹窗 ============
+    const modalContents = {
+      article: {
+        title: '生成财富圈长文精华',
+        body: `
+          <p class="text-sm text-gray-500 mb-4">基于本场直播核心主题与评论区热点自动生成长文，并分发到目标社群</p>
+          <div class="space-y-4">
+            <div class="border rounded-lg p-4">
+              <div class="flex items-center gap-2 mb-2"><span class="w-5 h-5 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs">1</span><span class="font-bold">内容摘要与选题</span></div>
+              <p class="text-sm text-gray-700">科技板块行情解读（38% 时长）、后市观点（31%）、资产配置投教（31%）；评论区 Top 问题：科技为何大跌、是否转投“老登股”、如何订阅财富圈。</p>
+            </div>
+            <div class="border rounded-lg p-4">
+              <div class="flex items-center gap-2 mb-2"><span class="w-5 h-5 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs">2</span><span class="font-bold">生成文章预览</span></div>
+              <div class="bg-gray-50 p-3 rounded text-sm text-gray-700 space-y-2">
+                <p class="font-bold">【7/16直播精华】科技大跌真相！后市怎么走？</p>
+                <p>1. 科技今天为什么跌得凶？——情绪 + 获利盘兑现，趋势未破</p>
+                <p>2. 资金要转向“老登股”吗？——不建议大幅漂移，均衡配置更稳</p>
+                <p>3. 普通人如何稳住资产配置？——股债搭配 + 行业再平衡</p>
+                <p class="text-xs text-gray-500">字数：约 1,200 字 ｜ 预计阅读时长：4 分钟 ｜ 配图：3 张</p>
+              </div>
+            </div>
+            <div class="border rounded-lg p-4">
+              <div class="flex items-center gap-2 mb-2"><span class="w-5 h-5 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs">3</span><span class="font-bold">分发设置</span></div>
+              <div class="text-sm text-gray-700 space-y-1">
+                <p>目标社群：企微交易客户群（3 个，覆盖 286 人）</p>
+                <p>发送时间：立即 ｜ 是否@所有人：否 ｜ 附带“联系投顾”卡片：是</p>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      video: {
+        title: '精彩短视频自动剪辑发布',
+        body: `
+          <p class="text-sm text-gray-500 mb-4">针对精彩内容片段自动剪辑短视频并发布</p>
+          <div class="space-y-4">
+            <div class="border rounded-lg p-4">
+              <div class="flex items-center gap-2 mb-2"><span class="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">1</span><span class="font-bold">智能选段</span></div>
+              <div class="text-sm text-gray-700 space-y-1">
+                <p>片段1：19:35 科技行情解读（人气峰值，互动活跃）· 时长 45s</p>
+                <p>片段2：19:50 资产配置策略（新增线索多）· 时长 38s</p>
+                <p>片段3：20:15 财富圈介绍（需优化但可二次包装）· 时长 30s</p>
+              </div>
+            </div>
+            <div class="border rounded-lg p-4">
+              <div class="flex items-center gap-2 mb-2"><span class="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">2</span><span class="font-bold">生成标题与封面</span></div>
+              <div class="bg-gray-50 p-3 rounded text-sm text-gray-700 space-y-1">
+                <p class="font-bold">标题：科技大跌真相！后市怎么走？</p>
+                <p>封面：已自动截取人气峰值画面并添加字幕 ｜ 已生成 3 版备选封面</p>
+                <p>BGM：已匹配轻快节奏模板 ｜ 字幕：自动识别语音生成</p>
+              </div>
+            </div>
+            <div class="border rounded-lg p-4">
+              <div class="flex items-center gap-2 mb-2"><span class="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">3</span><span class="font-bold">发布渠道</span></div>
+              <div class="text-sm text-gray-700">视频号（审核中）、财富圈（已发布）、企微客户群（已推送），预计触达 1,200+ 人。</div>
+            </div>
+          </div>
+        `
+      },
+      // 新增：自动识别客户标签
+      autoTags: {
+        title: '自动识别客户标签',
+        body: `
+          <p class="text-sm text-gray-500 mb-4">系统基于客户与主播的互动行为（评论、提问、观看时长、运营位点击、财富圈浏览等），自动为客户打标签并沉淀。以下均为您（张晓明）名下客户。</p>
+          <div class="border rounded-lg p-4 mb-4">
+            <div class="text-sm text-gray-700 mb-2">自动标签沉淀概览</div>
+            <div class="grid grid-cols-3 gap-3 text-center">
+              <div class="bg-blue-50 rounded-lg p-3"><div class="text-2xl font-bold text-blue-700">1,284</div><div class="text-xs text-gray-500 mt-1">累计自动标签数</div></div>
+              <div class="bg-green-50 rounded-lg p-3"><div class="text-2xl font-bold text-green-700">289</div><div class="text-xs text-gray-500 mt-1">覆盖客户数</div></div>
+              <div class="bg-purple-50 rounded-lg p-3"><div class="text-2xl font-bold text-purple-700">18</div><div class="text-xs text-gray-500 mt-1">标签类型</div></div>
+            </div>
+          </div>
+          <div id="tagTableContainer"></div>
+          <p class="text-xs text-gray-400 mt-3">标签每日凌晨自动更新并沉淀至客户画像，可用于精准推送与跟进。</p>
+        `
+      },
+      // 新增：服务线索（跳转线索洞察模块）
+      leads: {
+        title: '线索洞察',
+        body: `
+          <p class="text-sm text-gray-500 mb-4">以下为从本周直播互动中自动挖掘的"服务线索"，已同步至「线索洞察」模块，可按意向分派跟进。</p>
+          <table class="w-full text-sm border rounded-lg overflow-hidden">
+            <thead class="bg-gray-50"><tr><th class="text-left py-2 px-3">客户</th><th class="text-left py-2 px-3">线索类型</th><th class="text-left py-2 px-3">来源直播</th><th class="text-left py-2 px-3">信号</th><th class="text-left py-2 px-3">状态</th></tr></thead>
+            <tbody class="divide-y">
+              <tr><td class="py-2 px-3 font-medium">张**</td><td class="py-2 px-3"><span class="px-2 py-0.5 bg-orange-100 text-orange-700 rounded text-xs">加仓意向</span></td><td class="py-2 px-3">7/16 资产配置</td><td class="py-2 px-3 text-xs">评论"科技跌了能加吗"</td><td class="py-2 px-3"><span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded text-xs">待跟进</span></td></tr>
+              <tr><td class="py-2 px-3 font-medium">李**</td><td class="py-2 px-3"><span class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">入金意向</span></td><td class="py-2 px-3">7/16 资产配置</td><td class="py-2 px-3 text-xs">咨询"怎么转资金"</td><td class="py-2 px-3"><span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded text-xs">待跟进</span></td></tr>
+              <tr><td class="py-2 px-3 font-medium">王**</td><td class="py-2 px-3"><span class="px-2 py-0.5 bg-orange-100 text-orange-700 rounded text-xs">加仓意向</span></td><td class="py-2 px-3">7/18 科技解读</td><td class="py-2 px-3 text-xs">"财富圈怎么订阅"</td><td class="py-2 px-3"><span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">已派单</span></td></tr>
+            </tbody>
+          </table>
+          <div class="mt-4 flex justify-end">
+            <button class="px-4 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700" onclick="closeModal()">返回复盘</button>
+          </div>
+        `
+      }
+    };
+
+    // ============ 客户标签分页数据与渲染 ============
+    const customerTagData = [
+      { name: '张**', behavior: '评论"科技跌了能加吗"、观看 36分', tags: [{c:'red',t:'科技关注'},{c:'orange',t:'加仓意向'},{c:'blue',t:'高活跃'}] },
+      { name: '李**', behavior: '咨询"怎么转入资金"、点击运营位', tags: [{c:'purple',t:'入金意向'},{c:'gray',t:'新客'}] },
+      { name: '王**', behavior: '订阅财富圈、8次观看', tags: [{c:'green',t:'财富圈会员'},{c:'red',t:'科技关注'},{c:'blue',t:'高净值'}] },
+      { name: '陈**', behavior: '浏览长文2篇、低频互动', tags: [{c:'gray',t:'内容偏好-投教'},{c:'yellow',t:'待激活'}] },
+      { name: '赵**', behavior: '评论区提问"医药还能买吗"、观看28分', tags: [{c:'red',t:'医药关注'},{c:'orange',t:'加仓意向'},{c:'blue',t:'高活跃'}] },
+      { name: '刘**', behavior: '观看40分、全程未互动', tags: [{c:'gray',t:'静默观看'},{c:'yellow',t:'待激活'}] },
+      { name: '周**', behavior: '点击运营位3次、咨询财富圈订阅', tags: [{c:'green',t:'财富圈意向'},{c:'blue',t:'高活跃'}] },
+      { name: '吴**', behavior: '评论"定投怎么选"、观看22分', tags: [{c:'purple',t:'定投意向'},{c:'gray',t:'内容偏好-投教'}] },
+      { name: '郑**', behavior: '观看15分、中途退出', tags: [{c:'yellow',t:'流失风险'},{c:'gray',t:'低活跃'}] },
+      { name: '孙**', behavior: '评论"港股怎么看"、点击运营位', tags: [{c:'red',t:'港股关注'},{c:'orange',t:'加仓意向'}] },
+      { name: '马**', behavior: '观看35分、订阅财富圈', tags: [{c:'green',t:'财富圈会员'},{c:'blue',t:'高净值'},{c:'blue',t:'高活跃'}] },
+      { name: '朱**', behavior: '咨询"怎么转老登股"、观看18分', tags: [{c:'red',t:'老登股关注'},{c:'purple',t:'调仓意向'}] }
+    ];
+
+    let tagCurrentPage = 1;
+    const tagPageSize = 5;
+
+    function renderTagTable(page) {
+      tagCurrentPage = page;
+      const total = customerTagData.length;
+      const totalPages = Math.ceil(total / tagPageSize);
+      const start = (page - 1) * tagPageSize;
+      const rows = customerTagData.slice(start, start + tagPageSize);
+      const colorMap = {
+        red: 'bg-red-50 text-red-700',
+        orange: 'bg-orange-50 text-orange-700',
+        blue: 'bg-blue-50 text-blue-700',
+        green: 'bg-green-50 text-green-700',
+        purple: 'bg-purple-50 text-purple-700',
+        gray: 'bg-gray-100 text-gray-600',
+        yellow: 'bg-yellow-50 text-yellow-700'
+      };
+      const rowsHtml = rows.map(r => `
+        <tr>
+          <td class="py-2 px-3 font-medium">${r.name}</td>
+          <td class="py-2 px-3 text-xs">${r.behavior}</td>
+          <td class="py-2 px-3">${r.tags.map(t => `<span class="px-2 py-0.5 ${colorMap[t.c]} rounded text-xs mr-1">${t.t}</span>`).join('')}</td>
+        </tr>
+      `).join('');
+      let paginationHtml = '';
+      if (totalPages > 1) {
+        let pageButtons = '';
+        for (let i = 1; i <= totalPages; i++) {
+          pageButtons += `<button onclick="renderTagTable(${i})" class="px-3 py-1 rounded text-xs ${i === page ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">${i}</button>`;
+        }
+        const prevDisabled = page === 1;
+        const nextDisabled = page === totalPages;
+        paginationHtml = `
+          <div class="flex items-center justify-between mt-3">
+            <span class="text-xs text-gray-400">共 ${total} 条，第 ${page}/${totalPages} 页</span>
+            <div class="flex gap-1 items-center">
+              <button onclick="renderTagTable(${page - 1})" class="px-3 py-1 rounded text-xs ${prevDisabled ? 'bg-gray-50 text-gray-300 cursor-not-allowed' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" ${prevDisabled ? 'disabled' : ''}>上一页</button>
+              ${pageButtons}
+              <button onclick="renderTagTable(${page + 1})" class="px-3 py-1 rounded text-xs ${nextDisabled ? 'bg-gray-50 text-gray-300 cursor-not-allowed' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" ${nextDisabled ? 'disabled' : ''}>下一页</button>
+            </div>
+          </div>
+        `;
+      }
+      const html = `
+        <table class="w-full text-sm border rounded-lg overflow-hidden">
+          <thead class="bg-gray-50"><tr><th class="text-left py-2 px-3">客户</th><th class="text-left py-2 px-3">互动行为</th><th class="text-left py-2 px-3">系统自动添加标签</th></tr></thead>
+          <tbody class="divide-y">${rowsHtml}</tbody>
+        </table>
+        ${paginationHtml}
+      `;
+      const container = document.getElementById('tagTableContainer');
+      if (container) container.innerHTML = html;
+    }
+
+    function openModal(type) {
+      const content = modalContents[type];
+      document.getElementById('modalTitle').innerText = content.title;
+      document.getElementById('modalBody').innerHTML = content.body;
+      document.getElementById('actionModal').classList.remove('hidden');
+      document.getElementById('actionModal').classList.add('flex');
+      // autoTags 和 leads 弹窗隐藏底部"忽略/去执行"按钮
+      const footer = document.getElementById('modalFooter');
+      if (type === 'autoTags' || type === 'leads') {
+        footer.style.display = 'none';
+      } else {
+        footer.style.display = 'flex';
+      }
+      // autoTags 弹窗渲染分页表格
+      if (type === 'autoTags') {
+        renderTagTable(1);
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('actionModal').classList.add('hidden');
+      document.getElementById('actionModal').classList.remove('flex');
+    }
+
+    function executeAction() {
+      alert('执行成功！系统将自动完成所有子步骤并生成执行报告。');
+      closeModal();
+    }
+
+    document.getElementById('actionModal').addEventListener('click', function(e){
+      if(e.target === this) closeModal();
+    });
+  </script>
+</body>
+</html>
