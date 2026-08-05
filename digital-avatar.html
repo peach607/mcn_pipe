@@ -4,6 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>MCN 工作台 · 数字分身</title>
+<link rel="stylesheet" href="tokens.css">
 <style>
 :root{
   --paper:#f5f8fd;--paper2:#edf4ff;--card:rgba(255,255,255,.96);--ink:#102552;--ink2:#274173;
@@ -96,11 +97,12 @@ button{cursor:pointer;border:0;background:none}
 .bubble b i:before{content:"";position:absolute;inset:4px;border-radius:50%;border:2px solid rgba(255,255,255,.92);border-top-color:transparent;transform:rotate(24deg)}
 .bubble p{font-size:11px;color:var(--muted);line-height:1.62;margin-top:6px}
 .b1{left:26px;top:54px} .b2{right:22px;top:70px} .b3{left:24px;top:202px} .b4{right:18px;top:220px} .b5{left:58px;bottom:126px} .b6{right:50px;bottom:120px}
-.summary-bar{position:absolute;left:20px;right:20px;bottom:90px;display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:18px;background:rgba(255,255,255,.94);border:1px solid #dbe6f4;box-shadow:var(--shadow);z-index:5}
-.sum-icon{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,#eaf3ff,#f3f8ff);color:var(--blue);display:grid;place-items:center;flex:none}
+.summary-bar{position:absolute;left:20px;right:20px;bottom:29px;display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:22px;background:rgba(255,255,255,.98);border:1px solid #dbe6f4;box-shadow:0 16px 34px rgba(36,68,130,.10),0 5px 14px rgba(36,68,130,.05);z-index:5}
+.sum-icon{width:42px;height:42px;border-radius:14px;background:linear-gradient(180deg,#5ea0ff,#2b77f3);color:#fff;display:grid;place-items:center;flex:none;box-shadow:0 10px 18px rgba(43,119,243,.22)}
 .sum-icon svg{width:20px;height:20px}
-.summary-bar b{display:block;font-size:14px;color:#19335f}
-.summary-bar p{font-size:11px;color:var(--muted);line-height:1.55;margin-top:4px}
+.summary-main{min-width:0;flex:1}
+.summary-bar b{display:block;font-size:15px;color:#13254b;line-height:1.25;font-weight:800}
+.summary-bar p{font-size:12px;color:#667a9f;line-height:1.5;margin-top:5px}
 .command{padding:0 12px}
 .command-box{height:58px;border-radius:20px;border:1px solid var(--rule);background:rgba(255,255,255,.98);box-shadow:var(--shadow);display:flex;align-items:center;padding:0 14px 0 18px;gap:10px}
 .command-box input{border:0;outline:none;background:transparent;flex:1;color:#2c4676;font-size:13px}
@@ -166,6 +168,55 @@ button{cursor:pointer;border:0;background:none}
 .btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(18px);background:#10244b;color:#fff;padding:11px 16px;border-radius:12px;box-shadow:0 14px 30px rgba(17,35,71,.24);font-size:13px;opacity:0;pointer-events:none;transition:.22s ease;z-index:30}
 .toast.show{opacity:1;transform:translateX(-50%)}
+
+/* ===== 与 digital-avatars 统一的字体与卡片视觉 ===== */
+html{-webkit-font-smoothing:antialiased;background:var(--color-paper)}
+body{
+  font-family:var(--font-body);
+  font-size:14px;
+  line-height:1.55;
+  color:var(--color-ink);
+  background:var(--color-paper);
+}
+button,input{font-family:inherit}
+button{white-space:nowrap}
+:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px;border-radius:var(--radius-input)}
+
+.card{
+  border:1px solid var(--color-rule);
+  border-radius:14px;
+  background:var(--color-card);
+  box-shadow:var(--shadow-card);
+}
+.card:before{display:none}
+.card:hover{border-color:var(--color-accent-line);box-shadow:var(--shadow-card)}
+.card-head h2,.manage-head h2{font-size:16.5px;color:var(--color-ink)}
+.stage-top h1{font-size:20px;color:var(--color-ink)}
+.stage-top p,.card-head p,.manage-head p{font-size:12px;color:var(--color-muted)}
+
+.hero-pill,.mini-box,.health-row,.section,.setting{
+  border-color:var(--color-rule);
+  border-radius:10px;
+  background:var(--color-card);
+  box-shadow:none;
+}
+.stage-wrap{border-radius:14px;border-color:var(--color-rule)}
+.summary-bar{border-radius:14px;border-color:var(--color-rule);box-shadow:var(--shadow-card)}
+.command-box{border-radius:14px;border-color:var(--color-rule);box-shadow:var(--shadow-card)}
+.modal{border-radius:14px;border-color:var(--color-rule);box-shadow:var(--shadow-lift)}
+.icon,.health-row .mini-icon,.perm-icon,.handoff-icon,.sum-icon,.send{border-radius:12px}
+.manage-link,.handoff button,.btn,.close{border-radius:var(--radius-input)}
+.manage-link,.handoff button,.btn,.sum-action{flex-shrink:0;white-space:nowrap}
+.manage-link{min-width:76px;padding-inline:10px}
+.scope div{padding-inline:6px}
+.scope span{font-size:9.5px;white-space:nowrap;word-break:normal}
+.card-head>div:nth-child(2){min-width:0;flex:1}
+.head-meta{flex:none;white-space:nowrap}
+.hero-pill .delta{flex:none;white-space:nowrap}
+.mini-box{padding-inline:6px}
+.mini-box span{font-size:9.5px;white-space:nowrap;word-break:normal}
+.health-list{flex:1;justify-content:space-evenly}
+.health-row b{white-space:nowrap}
 </style>
 </head>
 <body>
@@ -220,7 +271,7 @@ button{cursor:pointer;border:0;background:none}
         <div class="bubble b6"><b><i></i>已提交今日任务</b><p>3 项需人工判断事项已完成同步。</p></div>
         <div class="summary-bar">
           <span class="sum-icon"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="m12 3 1.6 4.3L18 9l-4.4 1.7L12 15l-1.6-4.3L6 9l4.4-1.7L12 3Z"></path><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"></path></svg></span>
-          <div><b>今日已自主完成 57 项动作</b><p>88% 的常规服务无需人工介入，仅 3 项事项已同步至今日任务等待处理。</p></div>
+          <div class="summary-main"><b>今日已自主完成 57 项动作</b><p>88% 的常规服务无需人工介入，仅 3 项事项已同步至今日任务等待处理。</p></div>
         </div>
       </div>
       <div class="command">
