@@ -54,12 +54,6 @@ button{font-family:"Microsoft YaHei","PingFang SC",sans-serif}
 @keyframes flash{45%{opacity:1}to{opacity:0}}
 .back{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid #d7e1f0;border-radius:9px;color:#183872;background:#fff;font-size:11px;font-weight:700;cursor:pointer;transition:.18s ease}
 .back:hover{background:#edf4ff;color:#0872eb;border-color:#a9c7f0;transform:translateX(-2px)}
-.loading{
-  position:fixed;z-index:18;left:50%;top:50%;transform:translate(-50%,-50%);
-  padding:9px 13px;border-radius:9px;color:#fff;background:#17336e;font:12px "Microsoft YaHei";
-  opacity:0;pointer-events:none;transition:opacity .15s ease;
-}
-.loading.show{opacity:1}
 .open #taskHit,.open #avatarHit,.open #reviewHit{pointer-events:none}
 .open .veil{opacity:.84}
 .open .task-toolbar{opacity:1}
@@ -88,7 +82,6 @@ button{font-family:"Microsoft YaHei","PingFang SC",sans-serif}
     </header>
     <div class="task-viewport"><iframe id="taskFrame" src="today-tasks.html" title="今日任务 AI 执行中心"></iframe></div>
   </section>
-  <div class="loading" role="status">正在展开今日任务…</div>
 <script>
 const root=document.documentElement;
 const taskHit=document.querySelector('#taskHit');
@@ -98,19 +91,16 @@ const modal=document.querySelector('.task-modal');
 const task=document.querySelector('#taskFrame');
 const back=document.querySelector('.back');
 const source=document.querySelector('.source-card');
-const loading=document.querySelector('.loading');
 const modalTitle=document.querySelector('#modalTitle');
 const modalStatus=document.querySelector('#modalStatus');
 const pages={
-  task:{hit:taskHit,src:'today-tasks.html',title:'今日任务 · AI 执行中心',status:'实时运行',loading:'正在展开今日任务…',loaded:false},
-  avatar:{hit:avatarHit,src:'digital-avatars.html',title:'数字分身 · 智能执行中心',status:'智能在线',loading:'正在展开数字分身…',loaded:false},
-  review:{hit:reviewHit,src:'mcn_pipeline-main/new-operations-review.html?embed=1',title:'复盘助手 · 运营复盘中心',status:'数据已更新',loading:'正在展开复盘助手…',loaded:false}
+  task:{hit:taskHit,src:'today-tasks.html',title:'今日任务 · AI 执行中心',status:'实时运行'},
+  avatar:{hit:avatarHit,src:'digital-avatars.html',title:'数字分身 · 智能执行中心',status:'智能在线'},
+  review:{hit:reviewHit,src:'mcn_pipeline-main/new-operations-review.html?embed=1',title:'复盘助手 · 运营复盘中心',status:'数据已更新'}
 };
 let activeKey='task';
 let activeHit=taskHit;
 let busy=false;
-
-task.addEventListener('load',()=>{pages[activeKey].loaded=true;loading.classList.remove('show')});
 
 function cardRect(target=activeHit){
   const r=target.getBoundingClientRect();
@@ -137,11 +127,9 @@ async function openPage(key){
   modal.classList.toggle('avatar-view',key==='avatar');
   modal.classList.toggle('review-view',key==='review');
   if(task.getAttribute('src')!==page.src)task.setAttribute('src',page.src);
-  loading.textContent=page.loading;
   const start=cardRect(activeHit);
   place(source,start);source.style.opacity='1';source.classList.add('flash');
   root.classList.add('open');
-  if(!page.loaded)loading.classList.add('show');
 
   place(modal,start);
   modal.style.visibility='visible';modal.style.opacity='0';modal.style.pointerEvents='none';
@@ -181,9 +169,7 @@ addEventListener('message',e=>{
   modal.setAttribute('aria-label',page.title);
   modal.classList.toggle('avatar-view',key==='avatar');
   modal.classList.toggle('review-view',key==='review');
-  loading.textContent=page.loading;
   if(task.getAttribute('src')!==page.src){
-    loading.classList.add('show');
     task.setAttribute('src',page.src);
   }
 });
